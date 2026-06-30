@@ -147,7 +147,8 @@ Respond with ONLY valid JSON in this exact format, no explanation:
       endTime: s.endTime,
     })) });
   } catch (err) {
-    console.error("AI suggest error:", err);
-    return NextResponse.json({ error: "AI suggestion failed. Make sure ANTHROPIC_API_KEY is set." }, { status: 500 });
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("AI suggest error:", message);
+    return NextResponse.json({ error: `AI suggestion failed: ${message}` }, { status: 500 });
   }
 }
