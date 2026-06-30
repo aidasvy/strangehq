@@ -93,6 +93,7 @@ export default async function AdminSchedulePage({
 
   return (
     <div className="p-6 space-y-6">
+      <Link href="/admin" className="text-sm text-stone-400 hover:text-stone-600 transition-colors">← Overview</Link>
       <div className="flex items-start justify-between flex-wrap gap-4">
         <div>
           <h1 className="text-2xl font-bold text-stone-900">Schedule Builder</h1>

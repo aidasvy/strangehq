@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { HolidayRequestForm } from "./holiday-request-form";
+import Link from "next/link";
 
 export default async function HolidaysPage() {
   const session = await auth();
@@ -20,6 +21,7 @@ export default async function HolidaysPage() {
 
   return (
     <div className="p-6 space-y-6">
+      <Link href="/dashboard" className="text-sm text-stone-400 hover:text-stone-600 transition-colors">← Home</Link>
       <h1 className="text-2xl font-bold text-stone-900">Holidays</h1>
 
       <HolidayRequestForm companyId={membership.companyId} />

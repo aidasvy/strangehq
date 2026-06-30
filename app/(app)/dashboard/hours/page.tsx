@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { ClockControls } from "./clock-controls";
 import { RejectedEntryEditor } from "./rejected-entry-editor";
+import Link from "next/link";
 
 export default async function HoursPage() {
   const session = await auth();
@@ -28,6 +29,7 @@ export default async function HoursPage() {
 
   return (
     <div className="p-6 space-y-6">
+      <Link href="/dashboard" className="text-sm text-stone-400 hover:text-stone-600 transition-colors">← Home</Link>
       <h1 className="text-2xl font-bold text-stone-900">Hours</h1>
 
       <div className="max-w-2xl">

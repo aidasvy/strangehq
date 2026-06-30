@@ -2,6 +2,8 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { EmployeeRateEditor } from "./employee-rate-editor";
+import { RemoveMemberButton } from "./remove-member-button";
+import Link from "next/link";
 
 export default async function EmployeesPage() {
   const session = await auth();
@@ -20,6 +22,7 @@ export default async function EmployeesPage() {
 
   return (
     <div className="p-6 space-y-6">
+      <Link href="/admin" className="text-sm text-stone-400 hover:text-stone-600 transition-colors">← Overview</Link>
       <h1 className="text-2xl font-bold text-stone-900">Employees</h1>
 
       <div className="flex justify-end">
@@ -41,6 +44,7 @@ export default async function EmployeesPage() {
               <th className="px-4 py-2 text-left font-medium text-stone-500">Position</th>
               <th className="px-4 py-2 text-left font-medium text-stone-500">Gross hourly rate (€)</th>
               <th className="px-4 py-2 text-left font-medium text-stone-500">Joined</th>
+              <th className="px-4 py-2"></th>
             </tr>
           </thead>
           <tbody className="divide-y divide-stone-100">
@@ -63,6 +67,9 @@ export default async function EmployeesPage() {
                 </td>
                 <td className="px-4 py-3 text-stone-400 text-xs">
                   {m.createdAt.toLocaleDateString("lt-LT")}
+                </td>
+                <td className="px-4 py-3">
+                  <RemoveMemberButton memberId={m.id} name={m.user.name ?? m.user.email ?? "this person"} />
                 </td>
               </tr>
             ))}

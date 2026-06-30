@@ -1,7 +1,8 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
-import { DEFAULT_PAYROLL_CONFIG } from "@/lib/payroll";
+import { DEFAULT_PAYROLL_CONFIG, calculateHourBreakdown } from "@/lib/payroll";
+import Link from "next/link";
 import { PayrollCalculator } from "./payroll-calculator";
 import { PayrollSummary } from "./payroll-summary";
 
@@ -43,6 +44,9 @@ export default async function PayrollPage({
         npdBase: Number(dbConfig.npdBase),
         npdCoefficient: Number(dbConfig.npdCoefficient),
         minimumWage: Number(dbConfig.minimumWage),
+        nightPremium: Number(dbConfig.nightPremium),
+        sundayPremium: Number(dbConfig.sundayPremium),
+        holidayPremium: Number(dbConfig.holidayPremium),
       }
     : DEFAULT_PAYROLL_CONFIG;
 
@@ -70,17 +74,28 @@ export default async function PayrollPage({
   }));
 
   const summaryData = members.map((m) => {
-    const entries = approvedEntries.filter((e) => e.userId === m.userId);
-    const totalHours = entries.reduce((sum, e) => {
-      if (!e.clockOut) return sum;
-      return sum + (e.clockOut.getTime() - e.clockIn.getTime()) / 3600000;
-    }, 0);
+    const entries = approvedEntries
+      .filter((e) => e.userId === m.userId && e.clockOut !== null)
+      .map((e) => ({ clockIn: e.clockIn, clockOut: e.clockOut! }));
+
+    const totalHours = entries.reduce(
+      (sum, e) => sum + (e.clockOut.getTime() - e.clockIn.getTime()) / 3600000,
+      0
+    );
+
+    const hourlyRate = m.hourlyRate ? Number(m.hourlyRate) : null;
+    const breakdown =
+      hourlyRate !== null && entries.length > 0
+        ? calculateHourBreakdown(entries, hourlyRate, config)
+        : null;
+
     return {
       memberId: m.id,
       name: m.user.name ?? m.user.email,
-      hourlyRate: m.hourlyRate ? Number(m.hourlyRate) : null,
+      hourlyRate,
       totalHours,
       entryCount: entries.length,
+      breakdown,
     };
   });
 
@@ -91,6 +106,7 @@ export default async function PayrollPage({
 
   return (
     <div className="p-6 space-y-8">
+      <Link href="/admin" className="text-sm text-stone-400 hover:text-stone-600 transition-colors">← Overview</Link>
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-stone-900">Payroll</h1>

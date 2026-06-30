@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { ApproveRejectButtons } from "./approve-reject-buttons";
+import Link from "next/link";
 import { TimeEntryEditor } from "./time-entry-editor";
 import { ManualEntryForm } from "./manual-entry-form";
 import { BulkApproveButton } from "./bulk-approve-button";
@@ -42,6 +43,7 @@ export default async function TimeEntriesPage() {
 
   return (
     <div className="p-6 space-y-6">
+      <Link href="/admin" className="text-sm text-stone-400 hover:text-stone-600 transition-colors">← Overview</Link>
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-bold text-stone-900">Time Entries</h1>

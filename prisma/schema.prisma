@@ -246,6 +246,9 @@ model PayrollConfig {
   npdBase            Decimal  @default(747)    @db.Decimal(10, 2)
   npdCoefficient     Decimal  @default(0.49)   @db.Decimal(6, 4)
   minimumWage        Decimal  @default(1038)   @db.Decimal(10, 2)
+  nightPremium       Decimal  @default(0.50)   @db.Decimal(6, 4)
+  sundayPremium      Decimal  @default(1.00)   @db.Decimal(6, 4)
+  holidayPremium     Decimal  @default(1.00)   @db.Decimal(6, 4)
   company            Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
   updatedAt          DateTime @updatedAt
 }

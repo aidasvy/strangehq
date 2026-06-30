@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { NextResponse } from "next/server";
+import { DEFAULT_PAYROLL_CONFIG, calculateHourBreakdown, calculatePayroll } from "@/lib/payroll";
 
 function csv(rows: string[][]): string {
   return rows.map((row) => row.map((cell) => `"${String(cell ?? "").replace(/"/g, '""')}"`).join(",")).join("\n");
@@ -95,55 +96,71 @@ export async function GET(req: Request, { params }: { params: Promise<{ type: st
     const monthStart = new Date(year, month - 1, 1);
     const monthEnd = new Date(year, month, 0, 23, 59, 59);
 
-    const members = await db.companyMember.findMany({
-      where: { companyId },
-      include: { user: { select: { name: true, email: true } } },
-    });
-    const entries = await db.timeEntry.findMany({
-      where: { companyId, status: "APPROVED", clockIn: { gte: monthStart, lte: monthEnd }, clockOut: { not: null } },
-    });
+    const [members, dbConfig, entries] = await Promise.all([
+      db.companyMember.findMany({
+        where: { companyId },
+        include: { user: { select: { name: true, email: true } } },
+      }),
+      db.payrollConfig.findUnique({ where: { companyId } }),
+      db.timeEntry.findMany({
+        where: { companyId, status: "APPROVED", clockIn: { gte: monthStart, lte: monthEnd }, clockOut: { not: null } },
+      }),
+    ]);
 
-    const hoursByUser: Record<string, number> = {};
+    const config = dbConfig
+      ? {
+          ...DEFAULT_PAYROLL_CONFIG,
+          gpmRate: Number(dbConfig.gpmRate),
+          gpmHighRate: Number(dbConfig.gpmHighRate),
+          gpmAnnualThreshold: Number(dbConfig.gpmAnnualThreshold),
+          sodraEmployee: Number(dbConfig.sodraEmployee),
+          sodraEmployer: Number(dbConfig.sodraEmployer),
+          npdBase: Number(dbConfig.npdBase),
+          npdCoefficient: Number(dbConfig.npdCoefficient),
+          minimumWage: Number(dbConfig.minimumWage),
+          nightPremium: Number(dbConfig.nightPremium),
+          sundayPremium: Number(dbConfig.sundayPremium),
+          holidayPremium: Number(dbConfig.holidayPremium),
+        }
+      : DEFAULT_PAYROLL_CONFIG;
+
+    const entriesByUser: Record<string, Array<{ clockIn: Date; clockOut: Date }>> = {};
     entries.forEach((e) => {
       if (!e.clockOut) return;
-      hoursByUser[e.userId] = (hoursByUser[e.userId] ?? 0) + (e.clockOut.getTime() - e.clockIn.getTime()) / 3600000;
+      if (!entriesByUser[e.userId]) entriesByUser[e.userId] = [];
+      entriesByUser[e.userId].push({ clockIn: e.clockIn, clockOut: e.clockOut });
     });
 
-    // Lithuanian payroll constants
-    const GPM = 0.2;
-    const SODRA_EMP = 0.1952;
-    const SODRA_EMPLOYER = 0.0177;
-    const NPD_BASE = 747;
-    const NPD_COEFF = 0.49;
-    const MMA = 1038;
-
     const rows = [
-      ["Employee", "Email", "Hours", "Gross (€)", "Sodra employee (€)", "NPD (€)", "Taxable (€)", "GPM (€)", "Net (€)", "Employer cost (€)"],
+      ["Employee", "Email", "Total hours", "Night hours", "Sunday hours", "Holiday hours", "Gross (€)", "Sodra employee (€)", "NPD (€)", "Taxable (€)", "GPM (€)", "Net (€)", "Employer cost (€)"],
       ...members.map((m) => {
-        const hours = hoursByUser[m.userId] ?? 0;
-        const rate = m.hourlyRate ? parseFloat(m.hourlyRate.toString()) : 0;
-        const gross = parseFloat((hours * rate).toFixed(2));
-        if (gross === 0) {
-          return [m.user.name ?? "", m.user.email ?? "", hours.toFixed(2), "0.00", "0.00", "0.00", "0.00", "0.00", "0.00", "0.00"];
+        const rate = m.hourlyRate ? Number(m.hourlyRate) : 0;
+        const memberEntries = entriesByUser[m.userId] ?? [];
+        const totalHours = memberEntries.reduce(
+          (s, e) => s + (e.clockOut.getTime() - e.clockIn.getTime()) / 3600000, 0
+        );
+
+        if (rate === 0 || totalHours === 0) {
+          return [m.user.name ?? "", m.user.email ?? "", totalHours.toFixed(2), "0.00", "0.00", "0.00", "0.00", "0.00", "0.00", "0.00", "0.00", "0.00", "0.00"];
         }
-        const sodraEmp = parseFloat((gross * SODRA_EMP).toFixed(2));
-        const sodraEmployer = parseFloat((gross * SODRA_EMPLOYER).toFixed(2));
-        const npd = gross <= MMA ? NPD_BASE : Math.max(0, NPD_BASE - NPD_COEFF * (gross - MMA));
-        const taxable = Math.max(0, gross - sodraEmp - npd);
-        const gpm = parseFloat((taxable * GPM).toFixed(2));
-        const net = parseFloat((gross - sodraEmp - gpm).toFixed(2));
-        const employerCost = parseFloat((gross + sodraEmployer).toFixed(2));
+
+        const bd = calculateHourBreakdown(memberEntries, rate, config);
+        const p = calculatePayroll(bd.effectiveGross, config);
+
         return [
           m.user.name ?? "",
           m.user.email ?? "",
-          hours.toFixed(2),
-          gross.toFixed(2),
-          sodraEmp.toFixed(2),
-          npd.toFixed(2),
-          taxable.toFixed(2),
-          gpm.toFixed(2),
-          net.toFixed(2),
-          employerCost.toFixed(2),
+          totalHours.toFixed(2),
+          bd.nightHours.toFixed(2),
+          bd.sundayHours.toFixed(2),
+          bd.holidayHours.toFixed(2),
+          bd.effectiveGross.toFixed(2),
+          p.sodraEmployee.toFixed(2),
+          p.npd.toFixed(2),
+          p.taxableIncome.toFixed(2),
+          p.gpm.toFixed(2),
+          p.netMonthly.toFixed(2),
+          p.totalEmployerCost.toFixed(2),
         ];
       }),
     ];

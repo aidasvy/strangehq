@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { InviteCodeManager } from "./invite-code-manager";
+import Link from "next/link";
 
 export default async function SettingsPage() {
   const session = await auth();
@@ -30,6 +31,7 @@ export default async function SettingsPage() {
 
   return (
     <div className="p-6 space-y-6">
+      <Link href="/admin" className="text-sm text-stone-400 hover:text-stone-600 transition-colors">← Overview</Link>
       <div>
         <h1 className="text-2xl font-bold text-stone-900">Settings</h1>
         <p className="text-sm text-stone-500">{membership.company.name}</p>

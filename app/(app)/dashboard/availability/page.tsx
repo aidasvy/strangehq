@@ -46,6 +46,7 @@ export default async function AvailabilityPage({
 
   return (
     <div className="p-6 space-y-6">
+      <Link href="/dashboard" className="text-sm text-stone-400 hover:text-stone-600 transition-colors">← Home</Link>
       <div>
         <h1 className="text-2xl font-bold text-stone-900">Availability</h1>
         <p className="text-sm text-stone-500">Let your manager know when you can work</p>

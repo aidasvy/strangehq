@@ -68,6 +68,7 @@ export default function LocationsPage() {
 
   return (
     <div className="p-6 space-y-6">
+      <Link href="/admin" className="text-sm text-stone-400 hover:text-stone-600 transition-colors">← Overview</Link>
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-stone-900">Locations</h1>

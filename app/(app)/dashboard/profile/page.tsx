@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -45,6 +46,7 @@ export default function ProfilePage() {
 
   return (
     <div className="p-6 space-y-6 max-w-md">
+      <Link href="/dashboard" className="text-sm text-stone-400 hover:text-stone-600 transition-colors">← Home</Link>
       <div>
         <h1 className="text-2xl font-bold text-stone-900">Profile</h1>
         <p className="text-sm text-stone-500 mt-0.5">Update your display name</p>
