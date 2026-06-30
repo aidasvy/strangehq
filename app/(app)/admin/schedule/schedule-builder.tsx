@@ -5,12 +5,21 @@ import { useRouter } from "next/navigation";
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
+type Role = "EMPLOYEE" | "MANAGER" | "ADMIN";
+
+const ROLE_BADGE: Record<Role, string> = {
+  EMPLOYEE: "",
+  MANAGER: "bg-blue-100 text-blue-700",
+  ADMIN: "bg-purple-100 text-purple-700",
+};
+
 interface Employee {
   id: string;
   memberId: string;
   name: string | null;
   email: string;
   phone: string | null;
+  role: Role;
   availability: unknown;
   monthlyApprovedHours: number;
   monthlyScheduledHours: number;
@@ -268,7 +277,14 @@ export function ScheduleBuilder({ companyId, locationId, weekStart, scheduleId, 
               return (
                 <tr key={emp.id}>
                   <td className="px-3 py-2 align-top">
-                    <p className="font-medium text-stone-800 text-sm leading-tight">{emp.name ?? "—"}</p>
+                    <div className="flex items-center gap-1.5 leading-tight">
+                      <p className="font-medium text-stone-800 text-sm">{emp.name ?? "—"}</p>
+                      {emp.role !== "EMPLOYEE" && (
+                        <span className={`inline-flex rounded-full px-1.5 py-0 text-xs font-medium ${ROLE_BADGE[emp.role]}`}>
+                          {emp.role === "MANAGER" ? "Mgr" : "Admin"}
+                        </span>
+                      )}
+                    </div>
                     {emp.phone && (
                       <a href={`tel:${emp.phone}`} className="text-xs text-stone-400 hover:text-stone-600 block leading-tight mt-0.5">
                         {emp.phone}

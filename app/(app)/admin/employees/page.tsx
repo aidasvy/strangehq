@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { EmployeeRateEditor } from "./employee-rate-editor";
+import { EmployeeRoleEditor } from "./employee-role-editor";
 import { RemoveMemberButton } from "./remove-member-button";
 import Link from "next/link";
 
@@ -16,7 +17,7 @@ export default async function EmployeesPage() {
 
   const members = await db.companyMember.findMany({
     where: { companyId: membership.companyId },
-    include: { user: { select: { name: true, email: true, image: true } } },
+    include: { user: { select: { name: true, email: true, image: true, phone: true } } },
     orderBy: { createdAt: "asc" },
   });
 
@@ -53,13 +54,16 @@ export default async function EmployeesPage() {
                 <td className="px-4 py-3">
                   <p className="font-medium text-stone-900">{m.user.name ?? "—"}</p>
                   <p className="text-xs text-stone-400">{m.user.email}</p>
+                  {m.user.phone && (
+                    <p className="text-xs text-stone-400">{m.user.phone}</p>
+                  )}
                 </td>
                 <td className="px-4 py-3">
-                  <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
-                    m.role === "ADMIN" ? "bg-purple-100 text-purple-700" : m.role === "MANAGER" ? "bg-blue-100 text-blue-700" : "bg-stone-100 text-stone-600"
-                  }`}>
-                    {m.role.charAt(0) + m.role.slice(1).toLowerCase()}
-                  </span>
+                  <EmployeeRoleEditor
+                    memberId={m.id}
+                    currentRole={m.role as "EMPLOYEE" | "MANAGER" | "ADMIN"}
+                    isSelf={m.userId === membership.userId}
+                  />
                 </td>
                 <td className="px-4 py-3 text-stone-500">{m.position ?? "—"}</td>
                 <td className="px-4 py-3">

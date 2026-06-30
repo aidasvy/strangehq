@@ -129,6 +129,7 @@ export default async function AdminSchedulePage({
     name: m.user.name,
     email: m.user.email,
     phone: m.user.phone,
+    role: m.role as "EMPLOYEE" | "MANAGER" | "ADMIN",
     availability: availabilities.find((a) => a.userId === m.userId)?.data ?? null,
     monthlyApprovedHours: Math.round((approvedHoursByUser[m.userId] ?? 0) * 10) / 10,
     monthlyScheduledHours: Math.round((scheduledHoursByUser[m.userId] ?? 0) * 10) / 10,

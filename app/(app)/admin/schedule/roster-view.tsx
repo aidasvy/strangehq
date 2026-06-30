@@ -2,11 +2,20 @@
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
+type Role = "EMPLOYEE" | "MANAGER" | "ADMIN";
+
+const ROLE_BADGE: Record<Role, string> = {
+  EMPLOYEE: "",
+  MANAGER: "bg-blue-100 text-blue-700",
+  ADMIN: "bg-purple-100 text-purple-700",
+};
+
 interface Employee {
   id: string;
   name: string | null;
   email: string;
   phone: string | null;
+  role: Role;
   monthlyApprovedHours: number;
   monthlyScheduledHours: number;
 }
@@ -83,9 +92,16 @@ export function RosterView({ weekStart, employees, shifts }: Props) {
                       <li key={i} className="px-3 py-2.5">
                         <div className="flex items-start justify-between gap-2">
                           <div className="min-w-0">
-                            <p className="text-sm font-medium text-stone-800 truncate">
-                              {emp.name ?? emp.email}
-                            </p>
+                            <div className="flex items-center gap-1.5">
+                              <p className="text-sm font-medium text-stone-800 truncate">
+                                {emp.name ?? emp.email}
+                              </p>
+                              {emp.role !== "EMPLOYEE" && (
+                                <span className={`shrink-0 inline-flex rounded-full px-1.5 py-0 text-xs font-medium ${ROLE_BADGE[emp.role]}`}>
+                                  {emp.role === "MANAGER" ? "Mgr" : "Admin"}
+                                </span>
+                              )}
+                            </div>
                             <p className="text-xs text-amber-700 font-medium">
                               {s.startTime}–{s.endTime}
                               <span className="text-stone-400 font-normal ml-1">
@@ -151,7 +167,16 @@ export function RosterView({ weekStart, employees, shifts }: Props) {
                 const gap = emp.monthlyScheduledHours - emp.monthlyApprovedHours;
                 return (
                   <tr key={emp.id} className="hover:bg-stone-50 transition-colors">
-                    <td className="px-4 py-3 font-medium text-stone-800">{emp.name ?? "—"}</td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-medium text-stone-800">{emp.name ?? "—"}</span>
+                        {emp.role !== "EMPLOYEE" && (
+                          <span className={`inline-flex rounded-full px-1.5 py-0 text-xs font-medium ${ROLE_BADGE[emp.role]}`}>
+                            {emp.role === "MANAGER" ? "Manager" : "Admin"}
+                          </span>
+                        )}
+                      </div>
+                    </td>
                     <td className="px-4 py-3">
                       <div className="space-y-0.5">
                         {emp.phone && (

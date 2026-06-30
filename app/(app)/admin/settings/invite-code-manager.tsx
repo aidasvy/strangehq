@@ -17,7 +17,7 @@ export function InviteCodeManager({ companyId, codes: initial }: { companyId: st
   const router = useRouter();
   const [codes, setCodes] = useState(initial);
   const [creating, setCreating] = useState(false);
-  const [role, setRole] = useState<"EMPLOYEE" | "MANAGER" | "ADMIN">("EMPLOYEE");
+  const [role, setRole] = useState<"EMPLOYEE" | "ADMIN">("EMPLOYEE");
   const [copied, setCopied] = useState<string | null>(null);
 
   async function remove(id: string) {
@@ -56,7 +56,6 @@ export function InviteCodeManager({ companyId, codes: initial }: { companyId: st
           className="rounded border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-amber-500"
         >
           <option value="EMPLOYEE">Employee</option>
-          <option value="MANAGER">Manager</option>
           <option value="ADMIN">Admin</option>
         </select>
         <button
