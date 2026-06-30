@@ -26,7 +26,7 @@ export default async function DashboardLayout({
         isAdmin={membership.role === "ADMIN" || membership.role === "MANAGER"}
         isFullAdmin={membership.role === "ADMIN"}
       />
-      <main className="flex-1 overflow-auto">{children}</main>
+      <main className="flex-1 overflow-auto pt-14 pb-20 lg:pt-0 lg:pb-0">{children}</main>
     </div>
   );
 }

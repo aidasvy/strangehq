@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { signOut } from "next-auth/react";
 
 type Mode = "choose" | "create" | "join" | "profile";
 
@@ -109,6 +110,12 @@ export default function OnboardingPage() {
               Join with invite code
             </button>
           </div>
+          <button
+            onClick={() => signOut({ callbackUrl: "/" })}
+            className="text-xs text-stone-400 hover:text-stone-600 transition-colors"
+          >
+            Sign out
+          </button>
         </div>
       </main>
     );
