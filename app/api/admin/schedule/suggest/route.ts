@@ -54,10 +54,21 @@ ${employees.map((e: { id: string; name: string; availability: unknown; monthlyAp
     ? "No availability submitted"
     : avail.map((a: { day: number; startTime: string; endTime: string }) => `${DAYS[a.day - 1]}: ${a.startTime}–${a.endTime}`).join(", ");
   const crossShifts = (crossLocationShifts as Array<{ userId: string; date: string; locationName: string; startTime: string; endTime: string }>)
-    .filter((cs) => cs.userId === e.id)
-    .map((cs) => `${cs.date}: ${cs.startTime}–${cs.endTime} at ${cs.locationName}`);
-  return `- ${e.name} (id: ${e.id}): available: ${availStr}${crossShifts.length ? `; already scheduled elsewhere: ${crossShifts.join(", ")}` : ""}; this month: ${e.monthlyApprovedHours}h approved, ${e.monthlyScheduledHours}h scheduled`;
+    .filter((cs) => cs.userId === e.id);
+  const blockedDates = crossShifts.map((cs) => `  - BLOCKED ${cs.date} (${cs.startTime}–${cs.endTime} at ${cs.locationName}) — DO NOT schedule at ${locationName} on this date`).join("\n");
+  return `- ${e.name} (id: ${e.id}): available: ${availStr}; this month: ${e.monthlyApprovedHours}h approved, ${e.monthlyScheduledHours}h scheduled${blockedDates ? `\n${blockedDates}` : ""}`;
 }).join("\n")}
+
+## HARD RULE — same-day conflicts
+The following dates are completely blocked for these employees — they already have a shift at another location. You MUST NOT generate any shift for them on these dates, no exceptions:
+${(() => {
+  const blocked = (crossLocationShifts as Array<{ userId: string; date: string; locationName: string; startTime: string; endTime: string }>);
+  if (blocked.length === 0) return "None — no cross-location conflicts this week.";
+  return blocked.map((cs) => {
+    const emp = (employees as Array<{ id: string; name: string }>).find((e) => e.id === cs.userId);
+    return `- ${emp?.name ?? cs.userId} on ${cs.date}: occupied at ${cs.locationName} (${cs.startTime}–${cs.endTime})`;
+  }).join("\n");
+})()}
 
 ## Location hours
 ${locationHours.length === 0
