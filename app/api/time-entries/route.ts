@@ -16,7 +16,14 @@ export async function POST(req: Request) {
   const isAdmin = membership.role === "ADMIN";
 
   // Admin can log entries for other employees; employees can only log for themselves
-  const userId = (targetUserId && isAdmin) ? targetUserId : session.user.id;
+  let userId = session.user.id;
+  if (targetUserId && isAdmin) {
+    const targetMember = await db.companyMember.findUnique({
+      where: { userId_companyId: { userId: targetUserId, companyId } },
+    });
+    if (!targetMember) return NextResponse.json({ error: "User not found in this company" }, { status: 404 });
+    userId = targetUserId;
+  }
 
   const clockInDate = clockIn ? new Date(clockIn) : new Date();
   if (isNaN(clockInDate.getTime())) {

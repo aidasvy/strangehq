@@ -29,6 +29,16 @@ export async function POST(req: Request) {
     create: { companyId, locationId, weekStart: weekStartDate, status: "DRAFT" },
   });
 
+  // Validate all shift userIds belong to this company
+  if (shifts?.length > 0) {
+    const validUserIds = new Set(
+      (await db.companyMember.findMany({ where: { companyId }, select: { userId: true } }))
+        .map((m) => m.userId)
+    );
+    const invalid = shifts.find((s: { userId: string }) => !validUserIds.has(s.userId));
+    if (invalid) return NextResponse.json({ error: "One or more users do not belong to this company" }, { status: 403 });
+  }
+
   await db.scheduleShift.deleteMany({ where: { scheduleId: schedule.id } });
 
   if (shifts?.length > 0) {
