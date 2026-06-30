@@ -22,15 +22,14 @@ export default async function AdminHolidaysPage() {
       where: { companyId: membership.companyId },
       include: { user: { select: { name: true, email: true } } },
       orderBy: [{ status: "asc" }, { createdAt: "desc" }],
-      take: 100,
     }),
     db.companyMember.findMany({
       where: { companyId: membership.companyId },
-      select: { userId: true, annualLeaveDays: true, user: { select: { name: true, email: true } } },
+      select: { userId: true, annualLeaveDays: true, employmentStartDate: true, user: { select: { name: true, email: true } } },
     }),
   ]);
 
-  // Compute balance per member
+  // Compute balance per member (all requests, no year filter — computeLeaveBalance handles it)
   const balanceByUser: Record<string, ReturnType<typeof computeLeaveBalance>> = {};
   members.forEach((m) => {
     const memberRequests = requests.filter((r) => r.userId === m.userId);
@@ -40,7 +39,7 @@ export default async function AdminHolidaysPage() {
     const pending = memberRequests
       .filter((r) => r.status === "PENDING")
       .map((r) => ({ startDate: r.startDate, endDate: r.endDate, type: r.type }));
-    balanceByUser[m.userId] = computeLeaveBalance(m.annualLeaveDays, approved, pending, year);
+    balanceByUser[m.userId] = computeLeaveBalance(m.annualLeaveDays, m.employmentStartDate, approved, pending, year);
   });
 
   const pending = requests.filter((r) => r.status === "PENDING");

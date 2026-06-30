@@ -19,6 +19,9 @@ export async function POST(req: Request) {
     where: { userId_companyId: { userId: session.user.id, companyId } },
   });
   if (!membership) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!membership.employmentStartDate) {
+    return NextResponse.json({ error: "Your employment start date has not been set. Contact your admin." }, { status: 403 });
+  }
 
   const request = await db.holidayRequest.create({
     data: {

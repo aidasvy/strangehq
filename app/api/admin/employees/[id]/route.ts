@@ -7,7 +7,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
-  const { hourlyRate, position, role, annualLeaveDays } = await req.json();
+  const { hourlyRate, position, role, annualLeaveDays, employmentStartDate } = await req.json();
 
   const target = await db.companyMember.findUnique({ where: { id } });
   if (!target) return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -24,6 +24,9 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   if (position !== undefined) updates.position = position;
   if (role !== undefined && ["EMPLOYEE", "MANAGER", "ADMIN"].includes(role)) updates.role = role;
   if (annualLeaveDays !== undefined && Number.isInteger(annualLeaveDays) && annualLeaveDays >= 0) updates.annualLeaveDays = annualLeaveDays;
+  if (employmentStartDate !== undefined) {
+    updates.employmentStartDate = employmentStartDate ? new Date(employmentStartDate) : null;
+  }
 
   const updated = await db.companyMember.update({ where: { id }, data: updates });
   return NextResponse.json(updated);

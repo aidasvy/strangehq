@@ -1,6 +1,5 @@
 // Working-day and leave-balance utilities
 
-// Reuse the same Easter algorithm and holiday list from payroll
 function getEaster(year: number): Date {
   const a = year % 19, b = Math.floor(year / 100), c = year % 100;
   const d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25);
@@ -27,7 +26,7 @@ function getLithuanianHolidays(year: number): Set<string> {
   return s;
 }
 
-/** Count Mon–Fri days between start and end (inclusive), excluding LT public holidays. */
+/** Count Mon–Fri working days between start and end (inclusive), excluding LT public holidays. */
 export function countWorkingDays(start: Date, end: Date): number {
   const holidayCache = new Map<number, Set<string>>();
   let count = 0;
@@ -37,7 +36,7 @@ export function countWorkingDays(start: Date, end: Date): number {
 
   while (d.getTime() <= endMs) {
     const dow = d.getUTCDay();
-    if (dow !== 0 && dow !== 6) { // Mon–Fri
+    if (dow !== 0 && dow !== 6) {
       const year = d.getUTCFullYear();
       if (!holidayCache.has(year)) holidayCache.set(year, getLithuanianHolidays(year));
       const key = d.toISOString().slice(0, 10);
@@ -48,39 +47,72 @@ export function countWorkingDays(start: Date, end: Date): number {
   return count;
 }
 
+/** Prorated entitlement for a given year based on employment start date. */
+export function computeEntitlement(annualLeaveDays: number, employmentStartDate: Date | null, year: number): number {
+  if (!employmentStartDate) return annualLeaveDays;
+  const empYear = employmentStartDate.getUTCFullYear();
+  if (year < empYear) return 0;
+  if (year > empYear) return annualLeaveDays;
+  // First year: prorate by months worked (inclusive of start month)
+  const monthsWorked = 12 - employmentStartDate.getUTCMonth();
+  return Math.round((monthsWorked / 12) * annualLeaveDays);
+}
+
+type LeaveRequest = { startDate: Date; endDate: Date; type: string };
+
+function paidDaysInYear(requests: LeaveRequest[], year: number): number {
+  const yearStart = new Date(Date.UTC(year, 0, 1));
+  const yearEnd = new Date(Date.UTC(year, 11, 31));
+  return requests
+    .filter((r) => r.type === "PAID")
+    .reduce((sum, r) => {
+      const s = r.startDate < yearStart ? yearStart : r.startDate;
+      const e = r.endDate > yearEnd ? yearEnd : r.endDate;
+      return sum + (s <= e ? countWorkingDays(s, e) : 0);
+    }, 0);
+}
+
 export interface LeaveBalance {
   entitlement: number;
+  carryoverDays: number;
+  totalAvailable: number;
   usedDays: number;
   pendingDays: number;
   remainingDays: number;
 }
 
+/**
+ * Compute leave balance for a given year.
+ * Pass ALL approved and pending requests across all years — this function
+ * handles year-filtering internally and computes carryover from the previous year.
+ */
 export function computeLeaveBalance(
-  entitlement: number,
-  approvedRequests: Array<{ startDate: Date; endDate: Date; type: string }>,
-  pendingRequests: Array<{ startDate: Date; endDate: Date; type: string }>,
-  year: number
+  annualLeaveDays: number,
+  employmentStartDate: Date | null,
+  approvedRequests: LeaveRequest[],
+  pendingRequests: LeaveRequest[],
+  year: number,
 ): LeaveBalance {
-  const yearStart = new Date(Date.UTC(year, 0, 1));
-  const yearEnd = new Date(Date.UTC(year, 11, 31));
+  const entitlement = computeEntitlement(annualLeaveDays, employmentStartDate, year);
 
-  function daysInYear(reqs: typeof approvedRequests) {
-    return reqs
-      .filter((r) => r.type === "PAID")
-      .reduce((sum, r) => {
-        const s = r.startDate < yearStart ? yearStart : r.startDate;
-        const e = r.endDate > yearEnd ? yearEnd : r.endDate;
-        return sum + (s <= e ? countWorkingDays(s, e) : 0);
-      }, 0);
+  // Carryover: unused paid leave from previous year (only if not their first year)
+  let carryoverDays = 0;
+  if (employmentStartDate && employmentStartDate.getUTCFullYear() < year) {
+    const prevEntitlement = computeEntitlement(annualLeaveDays, employmentStartDate, year - 1);
+    const prevUsed = paidDaysInYear(approvedRequests, year - 1);
+    carryoverDays = Math.max(0, prevEntitlement - prevUsed);
   }
 
-  const usedDays = daysInYear(approvedRequests);
-  const pendingDays = daysInYear(pendingRequests);
+  const totalAvailable = entitlement + carryoverDays;
+  const usedDays = paidDaysInYear(approvedRequests, year);
+  const pendingDays = paidDaysInYear(pendingRequests, year);
 
   return {
     entitlement,
+    carryoverDays,
+    totalAvailable,
     usedDays,
     pendingDays,
-    remainingDays: Math.max(0, entitlement - usedDays - pendingDays),
+    remainingDays: Math.max(0, totalAvailable - usedDays - pendingDays),
   };
 }

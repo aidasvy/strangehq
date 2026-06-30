@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { EmployeeRateEditor } from "./employee-rate-editor";
 import { EmployeeRoleEditor } from "./employee-role-editor";
 import { EmployeeLeaveDaysEditor } from "./employee-leave-days-editor";
+import { EmployeeStartDateEditor } from "./employee-start-date-editor";
 import { RemoveMemberButton } from "./remove-member-button";
 import Link from "next/link";
 
@@ -46,6 +47,7 @@ export default async function EmployeesPage() {
               <th className="px-4 py-2 text-left font-medium text-stone-500">Position</th>
               <th className="px-4 py-2 text-left font-medium text-stone-500">Gross hourly rate (€)</th>
               <th className="px-4 py-2 text-left font-medium text-stone-500">Annual leave</th>
+              <th className="px-4 py-2 text-left font-medium text-stone-500">Employment start</th>
               <th className="px-4 py-2 text-left font-medium text-stone-500">Joined</th>
               <th className="px-4 py-2"></th>
             </tr>
@@ -73,6 +75,12 @@ export default async function EmployeesPage() {
                 </td>
                 <td className="px-4 py-3">
                   <EmployeeLeaveDaysEditor memberId={m.id} currentDays={m.annualLeaveDays} />
+                </td>
+                <td className="px-4 py-3">
+                  <EmployeeStartDateEditor
+                    memberId={m.id}
+                    currentDate={m.employmentStartDate ? m.employmentStartDate.toISOString().slice(0, 10) : null}
+                  />
                 </td>
                 <td className="px-4 py-3 text-stone-400 text-xs">
                   {m.createdAt.toLocaleDateString("lt-LT")}

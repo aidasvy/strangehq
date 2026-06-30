@@ -27,20 +27,19 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   // When approving a paid leave request, verify the employee has enough balance
   if (status === "APPROVED" && request.type === "PAID") {
     const year = request.startDate.getFullYear();
-    const yearStart = new Date(Date.UTC(year, 0, 1));
-    const yearEnd = new Date(Date.UTC(year, 11, 31, 23, 59, 59));
 
     const [employee, otherRequests] = await Promise.all([
       db.companyMember.findUnique({ where: { userId_companyId: { userId: request.userId, companyId: request.companyId } } }),
       db.holidayRequest.findMany({
-        where: { userId: request.userId, companyId: request.companyId, id: { not: id }, startDate: { gte: yearStart }, endDate: { lte: yearEnd } },
+        where: { userId: request.userId, companyId: request.companyId, id: { not: id } },
       }),
     ]);
 
-    const entitlement = (employee as { annualLeaveDays?: number } | null)?.annualLeaveDays ?? 20;
-    const approved = otherRequests.filter((r) => r.status === "APPROVED");
-    const pending = otherRequests.filter((r) => r.status === "PENDING");
-    const balance = computeLeaveBalance(entitlement, approved, pending, year);
+    const annualLeaveDays = employee?.annualLeaveDays ?? 20;
+    const employmentStartDate = employee?.employmentStartDate ?? null;
+    const approved = otherRequests.filter((r) => r.status === "APPROVED").map((r) => ({ startDate: r.startDate, endDate: r.endDate, type: r.type }));
+    const pending = otherRequests.filter((r) => r.status === "PENDING").map((r) => ({ startDate: r.startDate, endDate: r.endDate, type: r.type }));
+    const balance = computeLeaveBalance(annualLeaveDays, employmentStartDate, approved, pending, year);
     const requestDays = countWorkingDays(request.startDate, request.endDate);
 
     if (requestDays > balance.remainingDays) {

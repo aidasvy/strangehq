@@ -15,15 +15,26 @@ export default async function HolidaysPage() {
   });
   if (!membership) redirect("/onboarding");
 
+  // Employment start date must be set before holidays can be used
+  if (!membership.employmentStartDate) {
+    return (
+      <div className="p-4 sm:p-6 space-y-6 max-w-3xl">
+        <Link href="/dashboard" className="text-sm text-stone-400 hover:text-stone-600 transition-colors">← Home</Link>
+        <h1 className="text-2xl font-bold text-stone-900">Time Off</h1>
+        <div className="rounded-lg border border-amber-200 bg-amber-50 p-6 text-center space-y-2">
+          <p className="text-sm font-medium text-amber-800">Your employment details haven't been set up yet</p>
+          <p className="text-xs text-amber-600">Ask your manager or admin to set your employment start date before you can request time off.</p>
+        </div>
+      </div>
+    );
+  }
+
   const year = new Date().getFullYear();
 
-  const [allRequests] = await Promise.all([
-    db.holidayRequest.findMany({
-      where: { userId: session.user.id, companyId: membership.companyId },
-      orderBy: { createdAt: "desc" },
-      take: 30,
-    }),
-  ]);
+  const allRequests = await db.holidayRequest.findMany({
+    where: { userId: session.user.id, companyId: membership.companyId },
+    orderBy: { createdAt: "desc" },
+  });
 
   const approved = allRequests
     .filter((r) => r.status === "APPROVED")
@@ -32,7 +43,13 @@ export default async function HolidaysPage() {
     .filter((r) => r.status === "PENDING")
     .map((r) => ({ startDate: r.startDate, endDate: r.endDate, type: r.type }));
 
-  const balance = computeLeaveBalance(membership.annualLeaveDays, approved, pending, year);
+  const balance = computeLeaveBalance(
+    membership.annualLeaveDays,
+    membership.employmentStartDate,
+    approved,
+    pending,
+    year,
+  );
 
   return (
     <div className="p-4 sm:p-6 space-y-6 max-w-3xl">
@@ -43,8 +60,8 @@ export default async function HolidaysPage() {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
           { label: "Entitlement", value: balance.entitlement, unit: "days", color: "text-stone-700" },
+          { label: balance.carryoverDays > 0 ? `+ ${balance.carryoverDays}d carried over` : "Carried over", value: balance.carryoverDays, unit: "days", color: balance.carryoverDays > 0 ? "text-blue-700" : "text-stone-400" },
           { label: "Used", value: balance.usedDays, unit: "days", color: "text-stone-700" },
-          { label: "Pending", value: balance.pendingDays, unit: "days", color: "text-amber-600" },
           { label: "Remaining", value: balance.remainingDays, unit: "days", color: balance.remainingDays <= 3 ? "text-red-600" : "text-green-700" },
         ].map((s) => (
           <div key={s.label} className="rounded-lg border border-stone-200 bg-white shadow-sm p-3 text-center">
@@ -53,6 +70,10 @@ export default async function HolidaysPage() {
           </div>
         ))}
       </div>
+
+      {balance.pendingDays > 0 && (
+        <p className="text-xs text-amber-600">{balance.pendingDays} day{balance.pendingDays !== 1 ? "s" : ""} pending approval not yet deducted from remaining.</p>
+      )}
 
       <HolidayRequestForm companyId={membership.companyId} balance={balance} />
 
