@@ -36,7 +36,7 @@ export function EmployeeLeaveDaysEditor({
           onChange={(e) => setDays(e.target.value)}
           min="0"
           max="365"
-          className="w-16 rounded border border-stone-300 px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-amber-500"
+          className="w-16 rounded border border-stone-300 px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-stone-400"
         />
         <button
           onClick={save}

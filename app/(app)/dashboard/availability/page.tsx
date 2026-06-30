@@ -66,7 +66,7 @@ export default async function AvailabilityPage({
               href={`/dashboard/availability?week=${week}`}
               className={`rounded-lg px-4 py-2 text-sm font-medium border transition-colors ${
                 active
-                  ? "bg-amber-50 border-amber-300 text-amber-900"
+                  ? "bg-stone-100 border-stone-400 text-stone-900"
                   : "border-stone-200 text-stone-600 hover:bg-stone-50"
               }`}
             >

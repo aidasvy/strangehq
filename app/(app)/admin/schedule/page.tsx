@@ -60,7 +60,7 @@ export default async function AdminSchedulePage({
         <h1 className="text-2xl font-bold text-stone-900">Schedule Builder</h1>
         <p className="text-stone-500 text-sm">
           You need at least one location to build a schedule.{" "}
-          <Link href="/admin/locations" className="text-amber-700 underline">
+          <Link href="/admin/locations" className="text-stone-900 underline">
             Create a location →
           </Link>
         </p>
@@ -239,7 +239,7 @@ export default async function AdminSchedulePage({
                   href={`/admin/schedule?locationId=${loc.id}&week=${weekOffset}&view=${activeView}`}
                   className={`rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors ${
                     activeLocationId === loc.id
-                      ? "bg-amber-600 text-white"
+                      ? "bg-stone-900 text-white"
                       : "border border-stone-300 text-stone-600 hover:bg-stone-50"
                   }`}
                 >

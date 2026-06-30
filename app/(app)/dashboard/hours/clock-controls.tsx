@@ -219,7 +219,7 @@ export function ClockControls({ companyId, openEntry, locations, defaultLocation
             <button
               onClick={clockOut}
               disabled={loading}
-              className="rounded-lg bg-red-600 px-5 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50 transition-colors"
+              className="rounded-lg bg-red-600 px-6 py-3 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50 transition-colors"
             >
               {loading ? "Clocking out…" : customClockOut ? `Clock out at ${clockOutTime.split("T")[1]}` : "Clock out"}
             </button>
@@ -240,7 +240,7 @@ export function ClockControls({ companyId, openEntry, locations, defaultLocation
           <button
             onClick={clockIn}
             disabled={loading}
-            className="rounded-lg bg-green-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50 transition-colors"
+            className="rounded-lg bg-green-600 px-6 py-3 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50 transition-colors"
           >
             {loading ? "Starting…" : "Clock in"}
           </button>
@@ -252,7 +252,7 @@ export function ClockControls({ companyId, openEntry, locations, defaultLocation
             <select
               value={selectedLocation}
               onChange={(e) => setSelectedLocation(e.target.value)}
-              className="rounded border border-stone-300 px-2 py-1.5 text-sm text-stone-700 focus:outline-none focus:ring-2 focus:ring-amber-500"
+              className="rounded border border-stone-300 px-2 py-1.5 text-sm text-stone-700 focus:outline-none focus:ring-2 focus:ring-stone-400"
             >
               {locations.map((l) => (
                 <option key={l.id} value={l.id}>{l.name}</option>
@@ -288,7 +288,7 @@ export function ClockControls({ companyId, openEntry, locations, defaultLocation
                 onChange={(e) => setManualDate(e.target.value)}
                 required
                 max={todayDate()}
-                className="w-full rounded border border-stone-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                className="w-full rounded border border-stone-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-stone-400"
               />
             </div>
             <div>
@@ -298,7 +298,7 @@ export function ClockControls({ companyId, openEntry, locations, defaultLocation
                 value={manualStart}
                 onChange={(e) => setManualStart(e.target.value)}
                 required
-                className="w-full rounded border border-stone-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                className="w-full rounded border border-stone-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-stone-400"
               />
             </div>
             <div>
@@ -308,7 +308,7 @@ export function ClockControls({ companyId, openEntry, locations, defaultLocation
                 value={manualEnd}
                 onChange={(e) => setManualEnd(e.target.value)}
                 required
-                className="w-full rounded border border-stone-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                className="w-full rounded border border-stone-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-stone-400"
               />
             </div>
           </div>
@@ -319,7 +319,7 @@ export function ClockControls({ companyId, openEntry, locations, defaultLocation
               <select
                 value={selectedLocation}
                 onChange={(e) => setSelectedLocation(e.target.value)}
-                className="rounded border border-stone-300 px-2 py-1.5 text-sm text-stone-700 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                className="rounded border border-stone-300 px-2 py-1.5 text-sm text-stone-700 focus:outline-none focus:ring-2 focus:ring-stone-400"
               >
                 {locations.map((l) => (
                   <option key={l.id} value={l.id}>{l.name}</option>
@@ -335,7 +335,7 @@ export function ClockControls({ companyId, openEntry, locations, defaultLocation
               value={manualNote}
               onChange={(e) => setManualNote(e.target.value)}
               placeholder="e.g. Forgot to clock in at the start of shift"
-              className="w-full rounded border border-stone-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+              className="w-full rounded border border-stone-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-stone-400"
             />
           </div>
 

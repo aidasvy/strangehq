@@ -67,7 +67,7 @@ export function AvailabilityForm({ companyId, weekStart, weekLabel, existing }: 
                 id={`day-${i}`}
                 checked={!!slot}
                 onChange={() => toggle(i)}
-                className="h-4 w-4 rounded border-stone-300 text-amber-600 focus:ring-amber-500"
+                className="h-4 w-4 rounded border-stone-300 text-stone-900 focus:ring-stone-400"
               />
               <label htmlFor={`day-${i}`} className="w-28 text-sm font-medium text-stone-700 cursor-pointer">
                 {day}
@@ -78,14 +78,14 @@ export function AvailabilityForm({ companyId, weekStart, weekLabel, existing }: 
                     type="time"
                     value={slot.startTime}
                     onChange={(e) => update(i, "startTime", e.target.value)}
-                    className="rounded border border-stone-300 px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-amber-500"
+                    className="rounded border border-stone-300 px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-stone-400"
                   />
                   <span className="text-stone-400">to</span>
                   <input
                     type="time"
                     value={slot.endTime}
                     onChange={(e) => update(i, "endTime", e.target.value)}
-                    className="rounded border border-stone-300 px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-amber-500"
+                    className="rounded border border-stone-300 px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-stone-400"
                   />
                 </div>
               ) : (

@@ -136,6 +136,12 @@ export function ScheduleBuilder({
     );
   }
 
+  function wipeWeek() {
+    if (shifts.length === 0) return;
+    if (!confirm("Clear all shifts for this week? This can't be undone once saved.")) return;
+    setShifts([]);
+  }
+
   function updateShift(userId: string, date: Date, field: "startTime" | "endTime", value: string) {
     setShifts((prev) =>
       prev.map((s) =>
@@ -294,17 +300,23 @@ export function ScheduleBuilder({
             type="time"
             value={shift.startTime}
             onChange={(e) => updateShift(emp.id, date, "startTime", e.target.value)}
-            className="w-full rounded border border-stone-300 px-1 py-0.5 text-xs focus:outline-none focus:ring-1 focus:ring-amber-400"
+            className="w-full rounded border border-stone-300 px-1 py-0.5 text-xs focus:outline-none focus:ring-1 focus:ring-stone-400"
           />
           <input
             type="time"
             value={shift.endTime}
             onChange={(e) => updateShift(emp.id, date, "endTime", e.target.value)}
-            className="w-full rounded border border-stone-300 px-1 py-0.5 text-xs focus:outline-none focus:ring-1 focus:ring-amber-400"
+            className="w-full rounded border border-stone-300 px-1 py-0.5 text-xs focus:outline-none focus:ring-1 focus:ring-stone-400"
           />
           <div className="flex items-center justify-between">
             <span className="text-xs text-stone-400">{shiftHours(shift.startTime, shift.endTime).toFixed(1)}h</span>
-            <button onClick={() => removeShift(emp.id, date)} className="text-xs text-red-400 hover:text-red-600">✕</button>
+            <button
+              onClick={() => removeShift(emp.id, date)}
+              aria-label="Remove shift"
+              className="w-5 h-5 -mr-0.5 flex items-center justify-center rounded-full text-stone-400 hover:bg-red-100 hover:text-red-600 transition-colors"
+            >
+              ✕
+            </button>
           </div>
           {status === "cross_location" && crossShift && (
             <p className="text-xs text-purple-600 truncate">Also at {crossShift.locationName}</p>
@@ -365,9 +377,17 @@ export function ScheduleBuilder({
           onClick={suggestSchedule}
           disabled={suggesting}
           title="Let AI build an optimal schedule based on availability and hours"
-          className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-2 text-sm font-medium text-amber-800 hover:bg-amber-100 disabled:opacity-50 transition-colors flex items-center gap-2"
+          className="rounded-lg border border-stone-300 bg-white px-4 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50 disabled:opacity-50 transition-colors flex items-center gap-2"
         >
           <span>{suggesting ? "✨ Thinking…" : "✨ Suggest schedule"}</span>
+        </button>
+        <button
+          onClick={wipeWeek}
+          disabled={shifts.length === 0}
+          title="Clear all shifts for this week"
+          className="rounded-lg border border-stone-300 px-4 py-2 text-sm font-medium text-stone-500 hover:bg-red-50 hover:text-red-600 hover:border-red-200 disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-stone-500 disabled:hover:border-stone-300 transition-colors ml-auto"
+        >
+          Wipe week
         </button>
       </div>
 
@@ -412,7 +432,7 @@ export function ScheduleBuilder({
                   activeMobileDay === i
                     ? "bg-stone-800 text-white"
                     : isToday
-                    ? "bg-amber-100 text-amber-800"
+                    ? "bg-stone-100 text-stone-900 font-semibold ring-1 ring-inset ring-stone-300"
                     : "bg-stone-100 text-stone-600"
                 }`}
               >
@@ -452,7 +472,7 @@ export function ScheduleBuilder({
                     </p>
                   </div>
                   {shift ? (
-                    <span className="text-xs text-amber-700 font-medium shrink-0">{shift.startTime}–{shift.endTime}</span>
+                    <span className="text-xs text-stone-900 font-semibold shrink-0">{shift.startTime}–{shift.endTime}</span>
                   ) : (
                     <span className="text-xs text-stone-300 shrink-0">No shift</span>
                   )}
@@ -473,7 +493,7 @@ export function ScheduleBuilder({
               {weekDates.map((d, i) => {
                 const isToday = d.toDateString() === new Date().toDateString();
                 return (
-                  <th key={i} className={`px-2 py-2 text-center font-medium min-w-[110px] ${isToday ? "text-amber-600" : "text-stone-500"}`}>
+                  <th key={i} className={`px-2 py-2 text-center font-medium min-w-[110px] ${isToday ? "text-stone-900 underline decoration-2 underline-offset-4 decoration-stone-900" : "text-stone-500"}`}>
                     <p>{DAYS[i]}</p>
                     <p className="text-xs font-normal opacity-70">{d.getDate()}/{d.getMonth() + 1}</p>
                   </th>

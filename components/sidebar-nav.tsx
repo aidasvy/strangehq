@@ -51,7 +51,7 @@ export function SidebarNav({ companyName, userName, userEmail, isAdmin, isFullAd
       <aside className="hidden lg:flex w-56 shrink-0 bg-white border-r border-stone-200 flex-col">
         <div className="px-4 py-5 border-b border-stone-100">
           <Link href="/dashboard" className="font-bold text-lg tracking-tight text-stone-900 hover:opacity-80 transition-opacity">
-            Strange<span className="text-amber-600">HQ</span>
+            Strange<span className="text-stone-400">HQ</span>
           </Link>
           <p className="text-xs text-stone-400 truncate mt-0.5">{companyName}</p>
         </div>
@@ -91,7 +91,7 @@ export function SidebarNav({ companyName, userName, userEmail, isAdmin, isFullAd
       {/* ── MOBILE HEADER ───────────────────────────────────────────── */}
       <div className="lg:hidden fixed top-0 inset-x-0 z-40 bg-white border-b border-stone-200 flex items-center justify-between px-4 h-14">
         <Link href="/dashboard" className="font-bold text-lg tracking-tight text-stone-900">
-          Strange<span className="text-amber-600">HQ</span>
+          Strange<span className="text-stone-400">HQ</span>
         </Link>
 
         {/* Hamburger — opens full menu overlay */}
@@ -166,7 +166,7 @@ export function SidebarNav({ companyName, userName, userEmail, isAdmin, isFullAd
               key={tab.href}
               href={tab.href}
               className={`flex-1 flex flex-col items-center justify-center py-2 text-xs font-medium transition-colors ${
-                active ? "text-amber-600" : "text-stone-400 hover:text-stone-700"
+                active ? "text-stone-900" : "text-stone-400 hover:text-stone-700"
               }`}
             >
               <TabIcon href={tab.href} active={active} />
@@ -180,7 +180,7 @@ export function SidebarNav({ companyName, userName, userEmail, isAdmin, isFullAd
 }
 
 function TabIcon({ href, active }: { href: string; active: boolean }) {
-  const cls = `w-5 h-5 ${active ? "text-amber-600" : "text-stone-400"}`;
+  const cls = `w-5 h-5 ${active ? "text-stone-900" : "text-stone-400"}`;
   if (href === "/dashboard") return (
     <svg className={cls} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={active ? 2.5 : 2}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
@@ -235,7 +235,7 @@ function NavLink({
       onClick={onClick}
       className={`flex items-center rounded-md py-2 text-sm transition-colors ${
         active
-          ? "bg-amber-50 text-amber-900 font-medium border-l-2 border-amber-500 pl-[10px] pr-3"
+          ? "bg-stone-100 text-stone-900 font-medium border-l-2 border-stone-900 pl-[10px] pr-3"
           : "text-stone-600 hover:bg-stone-100 hover:text-stone-900 px-3"
       }`}
     >

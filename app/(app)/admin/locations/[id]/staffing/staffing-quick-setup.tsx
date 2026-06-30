@@ -141,7 +141,7 @@ export function StaffingQuickSetup({ locationId, onApplied }: Props) {
                 type="checkbox"
                 checked={hours[i].isOpen}
                 onChange={(e) => updateDay(i, { isOpen: e.target.checked })}
-                className="h-4 w-4 rounded border-stone-300 text-amber-600 focus:ring-amber-500"
+                className="h-4 w-4 rounded border-stone-300 text-stone-900 focus:ring-stone-400"
               />
               <span className="w-24 text-sm font-medium text-stone-700">{day}</span>
               {hours[i].isOpen ? (
@@ -150,14 +150,14 @@ export function StaffingQuickSetup({ locationId, onApplied }: Props) {
                     type="time"
                     value={hours[i].openTime}
                     onChange={(e) => updateDay(i, { openTime: e.target.value })}
-                    className="rounded border border-stone-300 px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-amber-500"
+                    className="rounded border border-stone-300 px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-stone-400"
                   />
                   <span className="text-stone-400 text-sm">–</span>
                   <input
                     type="time"
                     value={hours[i].closeTime}
                     onChange={(e) => updateDay(i, { closeTime: e.target.value })}
-                    className="rounded border border-stone-300 px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-amber-500"
+                    className="rounded border border-stone-300 px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-stone-400"
                   />
                 </div>
               ) : (
@@ -197,14 +197,14 @@ export function StaffingQuickSetup({ locationId, onApplied }: Props) {
                 type="time"
                 value={p.from}
                 onChange={(e) => updatePeak(i, { from: e.target.value })}
-                className="rounded border border-stone-300 px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-amber-500"
+                className="rounded border border-stone-300 px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-stone-400"
               />
               <span className="text-stone-400 text-sm">–</span>
               <input
                 type="time"
                 value={p.to}
                 onChange={(e) => updatePeak(i, { to: e.target.value })}
-                className="rounded border border-stone-300 px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-amber-500"
+                className="rounded border border-stone-300 px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-stone-400"
               />
               <span className="text-sm text-stone-500">+</span>
               <div className="flex items-center gap-1">
@@ -233,7 +233,7 @@ export function StaffingQuickSetup({ locationId, onApplied }: Props) {
             <button
               type="button"
               onClick={addPeak}
-              className="text-xs text-amber-700 hover:text-amber-900 font-medium transition-colors"
+              className="text-xs text-stone-700 hover:text-stone-900 font-medium transition-colors"
             >
               + Add rush period (e.g. lunch, dinner)
             </button>

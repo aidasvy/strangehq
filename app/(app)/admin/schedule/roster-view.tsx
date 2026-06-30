@@ -69,14 +69,14 @@ export function RosterView({ weekStart, employees, shifts }: Props) {
           return (
             <div
               key={dayIdx}
-              className={`rounded-lg border bg-white shadow-sm overflow-hidden ${isToday ? "border-amber-300" : "border-stone-200"}`}
+              className={`rounded-lg border bg-white shadow-sm overflow-hidden ${isToday ? "border-stone-900" : "border-stone-200"}`}
             >
-              <div className={`px-3 py-2 border-b ${isToday ? "bg-amber-50 border-amber-200" : "bg-stone-50 border-stone-100"}`}>
-                <p className={`text-sm font-semibold ${isToday ? "text-amber-800" : "text-stone-700"}`}>
+              <div className={`px-3 py-2 border-b ${isToday ? "bg-stone-900 border-stone-900" : "bg-stone-50 border-stone-100"}`}>
+                <p className={`text-sm font-semibold ${isToday ? "text-white" : "text-stone-700"}`}>
                   {DAYS[dayIdx]}
-                  {isToday && <span className="ml-1.5 text-xs font-normal text-amber-600">Today</span>}
+                  {isToday && <span className="ml-1.5 text-xs font-normal text-stone-300">Today</span>}
                 </p>
-                <p className="text-xs text-stone-400">
+                <p className={`text-xs ${isToday ? "text-stone-300" : "text-stone-400"}`}>
                   {date.toLocaleDateString("lt-LT", { day: "numeric", month: "short" })}
                 </p>
               </div>
@@ -102,7 +102,7 @@ export function RosterView({ weekStart, employees, shifts }: Props) {
                                 </span>
                               )}
                             </div>
-                            <p className="text-xs text-amber-700 font-medium">
+                            <p className="text-xs text-stone-900 font-semibold">
                               {s.startTime}–{s.endTime}
                               <span className="text-stone-400 font-normal ml-1">
                                 ({shiftHours(s.startTime, s.endTime).toFixed(1)}h)

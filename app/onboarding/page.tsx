@@ -92,7 +92,7 @@ export default function OnboardingPage() {
         <div className="max-w-sm w-full space-y-6 text-center">
           <div className="space-y-1">
             <h1 className="text-2xl font-bold text-stone-900">
-              Strange<span className="text-amber-600">HQ</span>
+              Strange<span className="text-stone-400">HQ</span>
             </h1>
             <p className="text-stone-500 text-sm mt-2">Get started by creating or joining a company</p>
           </div>
@@ -142,7 +142,7 @@ export default function OnboardingPage() {
                 value={profileName}
                 onChange={(e) => setProfileName(e.target.value)}
                 placeholder="e.g. Jonas Petraitis"
-                className="w-full rounded-lg border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                className="w-full rounded-lg border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-stone-400"
               />
             </div>
             <div>
@@ -155,7 +155,7 @@ export default function OnboardingPage() {
                 value={profilePhone}
                 onChange={(e) => setProfilePhone(e.target.value)}
                 placeholder="e.g. +370 600 00000"
-                className="w-full rounded-lg border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                className="w-full rounded-lg border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-stone-400"
               />
               <p className="text-xs text-stone-400 mt-1">Shown to your manager in the schedule.</p>
             </div>
@@ -199,7 +199,7 @@ export default function OnboardingPage() {
                 type="text"
                 required
                 placeholder="e.g. Kavos Baras"
-                className="w-full rounded-lg border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                className="w-full rounded-lg border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-stone-400"
               />
             </div>
             {error && <p className="text-red-500 text-sm">{error}</p>}
@@ -227,7 +227,7 @@ export default function OnboardingPage() {
                 type="text"
                 required
                 placeholder="e.g. ABC12345"
-                className="w-full rounded-lg border border-stone-300 px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-amber-500"
+                className="w-full rounded-lg border border-stone-300 px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-stone-400"
               />
             </div>
             {error && <p className="text-red-500 text-sm">{error}</p>}

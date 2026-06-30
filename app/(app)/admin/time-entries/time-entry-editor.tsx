@@ -73,7 +73,7 @@ export function TimeEntryEditor({ entryId, clockIn, clockOut }: Props) {
             type="datetime-local"
             value={editIn}
             onChange={(e) => setEditIn(e.target.value)}
-            className="w-full rounded border border-stone-300 px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-amber-500"
+            className="w-full rounded border border-stone-300 px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-stone-400"
           />
         </div>
         <div>
@@ -82,7 +82,7 @@ export function TimeEntryEditor({ entryId, clockIn, clockOut }: Props) {
             type="datetime-local"
             value={editOut}
             onChange={(e) => setEditOut(e.target.value)}
-            className="w-full rounded border border-stone-300 px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-amber-500"
+            className="w-full rounded border border-stone-300 px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-stone-400"
           />
         </div>
       </div>

@@ -8,7 +8,7 @@ export default function SignInPage() {
       <div className="w-full max-w-sm space-y-6 text-center">
         <div className="space-y-1">
           <h1 className="text-2xl font-bold text-stone-900">
-            Strange<span className="text-amber-600">HQ</span>
+            Strange<span className="text-stone-400">HQ</span>
           </h1>
           <p className="text-stone-500 text-sm mt-2">Sign in with your Google account to continue</p>
         </div>

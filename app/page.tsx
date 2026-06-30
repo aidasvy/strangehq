@@ -11,7 +11,7 @@ export default async function HomePage() {
       <div className="max-w-md w-full text-center space-y-8">
         <div className="space-y-3">
           <h1 className="text-4xl font-bold tracking-tight text-stone-900">
-            Strange<span className="text-amber-600">HQ</span>
+            Strange<span className="text-stone-400">HQ</span>
           </h1>
           <p className="text-stone-500 text-lg leading-relaxed">
             Scheduling, time tracking, and payroll for shift-based teams.

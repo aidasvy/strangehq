@@ -53,7 +53,7 @@ export function InviteCodeManager({ companyId, codes: initial }: { companyId: st
         <select
           value={role}
           onChange={(e) => setRole(e.target.value as "EMPLOYEE" | "ADMIN")}
-          className="rounded border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-amber-500"
+          className="rounded border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-stone-400"
         >
           <option value="EMPLOYEE">Employee</option>
           <option value="ADMIN">Admin</option>
@@ -102,7 +102,7 @@ export function InviteCodeManager({ companyId, codes: initial }: { companyId: st
                     <div className="flex items-center gap-3">
                       <button
                         onClick={() => copy(c.code)}
-                        className="text-xs text-amber-700 hover:text-amber-900 font-medium"
+                        className="text-xs text-stone-700 hover:text-stone-900 font-medium"
                       >
                         {copied === c.code ? "Copied!" : "Copy"}
                       </button>

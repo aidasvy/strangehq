@@ -91,7 +91,7 @@ export function ManualEntryForm({ companyId, employees }: Props) {
             value={targetUserId}
             onChange={(e) => setTargetUserId(e.target.value)}
             required
-            className="w-full rounded border border-stone-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+            className="w-full rounded border border-stone-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-stone-400"
           >
             {employees.map((emp) => (
               <option key={emp.userId} value={emp.userId}>
@@ -108,7 +108,7 @@ export function ManualEntryForm({ companyId, employees }: Props) {
             onChange={(e) => setDate(e.target.value)}
             required
             max={todayDate()}
-            className="w-full rounded border border-stone-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+            className="w-full rounded border border-stone-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-stone-400"
           />
         </div>
         <div>
@@ -118,7 +118,7 @@ export function ManualEntryForm({ companyId, employees }: Props) {
             value={start}
             onChange={(e) => setStart(e.target.value)}
             required
-            className="w-full rounded border border-stone-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+            className="w-full rounded border border-stone-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-stone-400"
           />
         </div>
         <div>
@@ -128,7 +128,7 @@ export function ManualEntryForm({ companyId, employees }: Props) {
             value={end}
             onChange={(e) => setEnd(e.target.value)}
             required
-            className="w-full rounded border border-stone-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+            className="w-full rounded border border-stone-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-stone-400"
           />
         </div>
       </div>
@@ -140,7 +140,7 @@ export function ManualEntryForm({ companyId, employees }: Props) {
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           placeholder="e.g. Employee forgot to clock in"
-          className="w-full rounded border border-stone-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+          className="w-full rounded border border-stone-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-stone-400"
         />
       </div>
 

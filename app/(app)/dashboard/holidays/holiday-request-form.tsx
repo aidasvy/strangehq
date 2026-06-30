@@ -106,7 +106,7 @@ export function HolidayRequestForm({ companyId, balance }: Props) {
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
               required
-              className="w-full rounded border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-amber-500"
+              className="w-full rounded border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-stone-400"
             />
           </div>
           <div>
@@ -116,7 +116,7 @@ export function HolidayRequestForm({ companyId, balance }: Props) {
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
               required
-              className="w-full rounded border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-amber-500"
+              className="w-full rounded border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-stone-400"
             />
           </div>
         </div>
@@ -143,7 +143,7 @@ export function HolidayRequestForm({ companyId, balance }: Props) {
             type="text"
             name="reason"
             placeholder="e.g. Family trip"
-            className="w-full rounded border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-amber-500"
+            className="w-full rounded border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-stone-400"
           />
         </div>
         {error && <p className="text-red-500 text-sm">{error}</p>}

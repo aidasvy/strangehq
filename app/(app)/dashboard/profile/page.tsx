@@ -63,7 +63,7 @@ export default function ProfilePage() {
             onChange={(e) => { setName(e.target.value); setSaved(false); }}
             placeholder="e.g. Jonas Petraitis"
             required
-            className="w-full rounded-lg border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+            className="w-full rounded-lg border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-stone-400"
           />
           <p className="text-xs text-stone-400 mt-1">This name is shown to your manager and teammates.</p>
         </div>
@@ -75,7 +75,7 @@ export default function ProfilePage() {
             value={phone}
             onChange={(e) => { setPhone(e.target.value); setSaved(false); }}
             placeholder="e.g. +370 600 00000"
-            className="w-full rounded-lg border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+            className="w-full rounded-lg border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-stone-400"
           />
           <p className="text-xs text-stone-400 mt-1">Shown to your manager for scheduling contact.</p>
         </div>

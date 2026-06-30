@@ -30,7 +30,7 @@ interface Props {
 
 function PremiumBadge({ label, hours }: { label: string; hours: number }) {
   return (
-    <span className="inline-flex items-center rounded-full bg-amber-50 px-1.5 py-0.5 text-xs text-amber-700 border border-amber-200">
+    <span className="inline-flex items-center rounded-full bg-stone-100 px-1.5 py-0.5 text-xs text-stone-700 border border-stone-200">
       {hours.toFixed(1)}h {label}
     </span>
   );
@@ -86,7 +86,7 @@ export function PayrollSummary({ summaryData, config, year, month, monthLabel }:
             <tr>
               <th className="px-4 py-2 text-left font-medium text-stone-500">Employee</th>
               <th className="px-4 py-2 text-right font-medium text-stone-500">Hours</th>
-              <th className="px-4 py-2 text-left font-medium text-amber-600">Premiums</th>
+              <th className="px-4 py-2 text-left font-medium text-stone-500">Premiums</th>
               <th className="px-4 py-2 text-right font-medium text-stone-500">Rate</th>
               <th className="px-4 py-2 text-right font-medium text-stone-500">Gross</th>
               <th className="px-4 py-2 text-right font-medium text-stone-500">Sodra (emp)</th>

@@ -30,7 +30,7 @@ export function EmployeeRateEditor({ memberId, currentRate }: { memberId: string
           onChange={(e) => setRate(e.target.value)}
           step="0.01"
           min="0"
-          className="w-24 rounded border border-stone-300 px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-amber-500"
+          className="w-24 rounded border border-stone-300 px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-stone-400"
         />
         <button
           onClick={save}

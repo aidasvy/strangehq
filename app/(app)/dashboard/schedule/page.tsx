@@ -79,7 +79,7 @@ export default async function SchedulePage() {
                   return (
                     <td key={i} className="px-3 py-4 text-center align-top border-t border-stone-100">
                       {shift ? (
-                        <div className="rounded bg-amber-50 text-amber-800 px-2 py-1 text-xs font-medium">
+                        <div className="rounded bg-stone-100 text-stone-900 px-2 py-1 text-xs font-medium">
                           {shift.startTime}–{shift.endTime}
                         </div>
                       ) : (

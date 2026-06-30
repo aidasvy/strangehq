@@ -62,7 +62,7 @@ export function PayrollCalculator({ config, employees }: Props) {
           <select
             value={selectedEmployee}
             onChange={(e) => handleEmployeeChange(e.target.value)}
-            className="w-full rounded border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-amber-500"
+            className="w-full rounded border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-stone-400"
           >
             <option value="">— Select employee —</option>
             {employees.map((e) => (
@@ -83,7 +83,7 @@ export function PayrollCalculator({ config, employees }: Props) {
               min="0"
               step="0.5"
               placeholder="e.g. 160"
-              className="w-full rounded border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-amber-500"
+              className="w-full rounded border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-stone-400"
             />
           </div>
         )}
@@ -97,7 +97,7 @@ export function PayrollCalculator({ config, employees }: Props) {
             min="0"
             step="0.01"
             placeholder="e.g. 1500"
-            className="w-full rounded border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-amber-500"
+            className="w-full rounded border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-stone-400"
           />
         </div>
 

@@ -83,7 +83,7 @@ export default function StaffingPage({ params }: { params: Promise<{ id: string 
             onClick={() => setTab(t)}
             className={`pb-2 text-sm font-medium border-b-2 transition-colors ${
               tab === t
-                ? "border-amber-500 text-amber-700"
+                ? "border-stone-900 text-stone-900"
                 : "border-transparent text-stone-500 hover:text-stone-700"
             }`}
           >
@@ -133,9 +133,9 @@ export default function StaffingPage({ params }: { params: Promise<{ id: string 
                               value={val === 0 ? "" : val}
                               placeholder="–"
                               onChange={(e) => setValue(day, hour, e.target.value)}
-                              className={`w-14 rounded border text-center text-xs px-1 py-1 focus:outline-none focus:ring-1 focus:ring-amber-400 ${
+                              className={`w-14 rounded border text-center text-xs px-1 py-1 focus:outline-none focus:ring-1 focus:ring-stone-400 ${
                                 val > 0
-                                  ? "border-amber-300 bg-amber-50 text-amber-900 font-medium"
+                                  ? "border-stone-400 bg-stone-100 text-stone-900 font-medium"
                                   : "border-stone-200 text-stone-300"
                               }`}
                             />
