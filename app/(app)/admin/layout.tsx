@@ -15,7 +15,7 @@ export default async function AdminLayout({
   });
 
   if (!membership) redirect("/onboarding");
-  if (membership.role !== "ADMIN") redirect("/dashboard");
+  if (membership.role !== "ADMIN" && membership.role !== "MANAGER") redirect("/dashboard");
 
   return <>{children}</>;
 }

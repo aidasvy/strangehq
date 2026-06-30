@@ -9,9 +9,10 @@ interface Props {
   userName: string | null;
   userEmail: string;
   isAdmin: boolean;
+  isFullAdmin: boolean;
 }
 
-export function SidebarNav({ companyName, userName, userEmail, isAdmin }: Props) {
+export function SidebarNav({ companyName, userName, userEmail, isAdmin, isFullAdmin }: Props) {
   const pathname = usePathname();
 
   return (
@@ -42,7 +43,7 @@ export function SidebarNav({ companyName, userName, userEmail, isAdmin }: Props)
             <NavLink href="/admin/holidays" pathname={pathname}>Holidays</NavLink>
             <NavLink href="/admin/employees" pathname={pathname}>Employees</NavLink>
             <NavLink href="/admin/locations" pathname={pathname}>Locations</NavLink>
-            <NavLink href="/admin/payroll" pathname={pathname}>Payroll</NavLink>
+            {isFullAdmin && <NavLink href="/admin/payroll" pathname={pathname}>Payroll</NavLink>}
             <NavLink href="/admin/settings" pathname={pathname}>Settings</NavLink>
           </>
         )}

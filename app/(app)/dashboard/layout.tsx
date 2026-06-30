@@ -23,7 +23,8 @@ export default async function DashboardLayout({
         companyName={membership.company.name}
         userName={session.user.name ?? null}
         userEmail={session.user.email ?? ""}
-        isAdmin={membership.role === "ADMIN"}
+        isAdmin={membership.role === "ADMIN" || membership.role === "MANAGER"}
+        isFullAdmin={membership.role === "ADMIN"}
       />
       <main className="flex-1 overflow-auto">{children}</main>
     </div>

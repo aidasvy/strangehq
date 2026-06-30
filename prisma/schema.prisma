@@ -132,6 +132,7 @@ model CompanyMember {
 
 enum Role {
   EMPLOYEE
+  MANAGER
   ADMIN
 }
 

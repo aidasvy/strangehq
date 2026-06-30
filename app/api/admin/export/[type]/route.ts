@@ -16,7 +16,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ type: st
   const membership = await db.companyMember.findFirst({
     where: { userId: session.user.id },
   });
-  if (!membership || membership.role !== "ADMIN") {
+  if (!membership || (membership.role !== "ADMIN" && membership.role !== "MANAGER")) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
   const companyId = membership.companyId;
@@ -83,6 +83,10 @@ export async function GET(req: Request, { params }: { params: Promise<{ type: st
         "Content-Disposition": 'attachment; filename="time-entries.csv"',
       },
     });
+  }
+
+  if (type === "payroll" && membership.role !== "ADMIN") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   if (type === "payroll") {

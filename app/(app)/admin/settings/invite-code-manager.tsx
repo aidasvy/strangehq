@@ -17,7 +17,7 @@ export function InviteCodeManager({ companyId, codes: initial }: { companyId: st
   const router = useRouter();
   const [codes, setCodes] = useState(initial);
   const [creating, setCreating] = useState(false);
-  const [role, setRole] = useState<"EMPLOYEE" | "ADMIN">("EMPLOYEE");
+  const [role, setRole] = useState<"EMPLOYEE" | "MANAGER" | "ADMIN">("EMPLOYEE");
   const [copied, setCopied] = useState<string | null>(null);
 
   async function remove(id: string) {
@@ -56,6 +56,7 @@ export function InviteCodeManager({ companyId, codes: initial }: { companyId: st
           className="rounded border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-amber-500"
         >
           <option value="EMPLOYEE">Employee</option>
+          <option value="MANAGER">Manager</option>
           <option value="ADMIN">Admin</option>
         </select>
         <button
@@ -87,7 +88,7 @@ export function InviteCodeManager({ companyId, codes: initial }: { companyId: st
                   <td className="px-4 py-3 font-mono text-base font-bold tracking-widest text-stone-900">{c.code}</td>
                   <td className="px-4 py-3">
                     <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
-                      c.role === "ADMIN" ? "bg-purple-100 text-purple-700" : "bg-stone-100 text-stone-600"
+                      c.role === "ADMIN" ? "bg-purple-100 text-purple-700" : c.role === "MANAGER" ? "bg-blue-100 text-blue-700" : "bg-stone-100 text-stone-600"
                     }`}>
                       {c.role.charAt(0) + c.role.slice(1).toLowerCase()}
                     </span>

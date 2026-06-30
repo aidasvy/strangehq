@@ -52,7 +52,7 @@ export default async function EmployeesPage() {
                 </td>
                 <td className="px-4 py-3">
                   <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
-                    m.role === "ADMIN" ? "bg-purple-100 text-purple-700" : "bg-stone-100 text-stone-600"
+                    m.role === "ADMIN" ? "bg-purple-100 text-purple-700" : m.role === "MANAGER" ? "bg-blue-100 text-blue-700" : "bg-stone-100 text-stone-600"
                   }`}>
                     {m.role.charAt(0) + m.role.slice(1).toLowerCase()}
                   </span>

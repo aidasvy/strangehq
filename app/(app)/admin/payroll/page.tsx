@@ -24,6 +24,7 @@ export default async function PayrollPage({
     include: { company: { include: { payrollConfig: true } } },
   });
   if (!membership) redirect("/onboarding");
+  if (membership.role !== "ADMIN") redirect("/admin");
 
   const sp = await searchParams;
   const now = new Date();
