@@ -2,9 +2,19 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { NextResponse } from "next/server";
 
+const ALLOWED_EMAILS = (process.env.ALLOWED_ADMIN_EMAILS ?? "")
+  .split(",")
+  .map((e) => e.trim().toLowerCase())
+  .filter(Boolean);
+
 export async function POST(req: Request) {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const email = session.user.email?.toLowerCase() ?? "";
+  if (ALLOWED_EMAILS.length > 0 && !ALLOWED_EMAILS.includes(email)) {
+    return NextResponse.json({ error: "Not authorised to create a company" }, { status: 403 });
+  }
 
   const { name } = await req.json();
   if (!name?.trim()) return NextResponse.json({ error: "Company name is required" }, { status: 400 });
