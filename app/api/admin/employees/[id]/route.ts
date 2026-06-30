@@ -1,0 +1,29 @@
+import { auth } from "@/lib/auth";
+import { db } from "@/lib/db";
+import { NextResponse } from "next/server";
+
+export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const session = await auth();
+  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { id } = await params;
+  const { hourlyRate, position, role } = await req.json();
+
+  const target = await db.companyMember.findUnique({ where: { id } });
+  if (!target) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  const membership = await db.companyMember.findUnique({
+    where: { userId_companyId: { userId: session.user.id, companyId: target.companyId } },
+  });
+  if (!membership || membership.role !== "ADMIN") {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  const updates: Record<string, unknown> = {};
+  if (hourlyRate !== undefined) updates.hourlyRate = hourlyRate;
+  if (position !== undefined) updates.position = position;
+  if (role !== undefined && ["EMPLOYEE", "ADMIN"].includes(role)) updates.role = role;
+
+  const updated = await db.companyMember.update({ where: { id }, data: updates });
+  return NextResponse.json(updated);
+}

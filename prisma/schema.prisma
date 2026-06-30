@@ -1,0 +1,250 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ── Auth.js required models ──────────────────────────────────────────────────
+
+model User {
+  id            String          @id @default(cuid())
+  name          String?
+  email         String          @unique
+  emailVerified DateTime?
+  image         String?
+  accounts      Account[]
+  sessions      Session[]
+  memberships   CompanyMember[]
+  timeEntries   TimeEntry[]
+  availability  Availability[]
+  holidayRequests HolidayRequest[]
+  scheduleShifts  ScheduleShift[]
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+}
+
+model Account {
+  id                String   @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ── App models ───────────────────────────────────────────────────────────────
+
+model Company {
+  id              String          @id @default(cuid())
+  name            String
+  slug            String          @unique
+  timezone        String          @default("Europe/Vilnius")
+  members         CompanyMember[]
+  locations       Location[]
+  timeEntries     TimeEntry[]
+  schedules       Schedule[]
+  inviteCodes     InviteCode[]
+  holidayRequests HolidayRequest[]
+  payrollConfig   PayrollConfig?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+}
+
+model Location {
+  id            String         @id @default(cuid())
+  companyId     String
+  name          String
+  address       String?
+  isActive      Boolean        @default(true)
+  company       Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  schedules      Schedule[]
+  timeEntries    TimeEntry[]
+  staffingRules  StaffingRule[]
+  locationHours  LocationHours[]
+  createdAt      DateTime       @default(now())
+}
+
+model StaffingRule {
+  id         String   @id @default(cuid())
+  locationId String
+  dayOfWeek  Int      // 1=Mon … 7=Sun
+  hour       Int      // 0–23
+  minStaff   Int      @default(1)
+  location   Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+
+  @@unique([locationId, dayOfWeek, hour])
+}
+
+model LocationHours {
+  id         String   @id @default(cuid())
+  locationId String
+  dayOfWeek  Int      // 1=Mon … 7=Sun
+  isOpen     Boolean  @default(true)
+  openTime   String   @default("09:00")
+  closeTime  String   @default("22:00")
+  location   Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+
+  @@unique([locationId, dayOfWeek])
+}
+
+model CompanyMember {
+  id          String   @id @default(cuid())
+  userId      String
+  companyId   String
+  role        Role     @default(EMPLOYEE)
+  hourlyRate  Decimal? @db.Decimal(10, 2)
+  position    String?
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([userId, companyId])
+}
+
+enum Role {
+  EMPLOYEE
+  ADMIN
+}
+
+model InviteCode {
+  id        String    @id @default(cuid())
+  companyId String
+  code      String    @unique
+  role      Role      @default(EMPLOYEE)
+  expiresAt DateTime?
+  maxUses   Int?
+  usedCount Int       @default(0)
+  company   Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now())
+}
+
+model TimeEntry {
+  id         String      @id @default(cuid())
+  userId     String
+  companyId  String
+  locationId String?
+  clockIn    DateTime
+  clockOut   DateTime?
+  notes      String?
+  status     EntryStatus @default(PENDING)
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  company    Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  location   Location?   @relation(fields: [locationId], references: [id])
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+}
+
+enum EntryStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model Schedule {
+  id         String         @id @default(cuid())
+  companyId  String
+  locationId String
+  weekStart  DateTime
+  status     ScheduleStatus @default(DRAFT)
+  shifts     ScheduleShift[]
+  company    Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  location   Location       @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+
+  @@unique([locationId, weekStart])
+}
+
+enum ScheduleStatus {
+  DRAFT
+  PUBLISHED
+}
+
+model ScheduleShift {
+  id         String   @id @default(cuid())
+  scheduleId String
+  userId     String
+  date       DateTime @db.Date
+  startTime  String
+  endTime    String
+  schedule   Schedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+}
+
+model Availability {
+  id        String   @id @default(cuid())
+  userId    String
+  companyId String
+  weekStart DateTime
+  data      Json
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, companyId, weekStart])
+}
+
+model HolidayRequest {
+  id        String        @id @default(cuid())
+  userId    String
+  companyId String
+  startDate DateTime      @db.Date
+  endDate   DateTime      @db.Date
+  reason    String?
+  status    RequestStatus @default(PENDING)
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  company   Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+}
+
+enum RequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model PayrollConfig {
+  id                 String   @id @default(cuid())
+  companyId          String   @unique
+  gpmRate            Decimal  @default(0.2000) @db.Decimal(6, 4)
+  gpmHighRate        Decimal  @default(0.3200) @db.Decimal(6, 4)
+  gpmAnnualThreshold Decimal  @default(101094) @db.Decimal(10, 2)
+  sodraEmployee      Decimal  @default(0.1950) @db.Decimal(6, 4)
+  sodraEmployer      Decimal  @default(0.0177) @db.Decimal(6, 4)
+  npdBase            Decimal  @default(747)    @db.Decimal(10, 2)
+  npdCoefficient     Decimal  @default(0.49)   @db.Decimal(6, 4)
+  minimumWage        Decimal  @default(1038)   @db.Decimal(10, 2)
+  company            Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  updatedAt          DateTime @updatedAt
+}
