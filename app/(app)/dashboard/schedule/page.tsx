@@ -25,19 +25,25 @@ export default async function SchedulePage() {
 
   const weekStart = getWeekStart();
 
-  const schedule = await db.schedule.findFirst({
+  const schedules = await db.schedule.findMany({
     where: {
       companyId: membership.companyId,
       weekStart,
       status: "PUBLISHED",
     },
     include: {
+      location: { select: { name: true } },
       shifts: {
         where: { userId: session.user.id },
         orderBy: { date: "asc" },
       },
     },
   });
+
+  // Flatten shifts with their location name
+  const myShifts = schedules.flatMap((s) =>
+    s.shifts.map((shift) => ({ ...shift, locationName: s.location.name }))
+  );
 
   const weekDates = Array.from({ length: 7 }, (_, i) => {
     const d = new Date(weekStart);
@@ -53,7 +59,7 @@ export default async function SchedulePage() {
         Week of {weekStart.toLocaleDateString("lt-LT", { day: "numeric", month: "long", year: "numeric" })}
       </p>
 
-      {!schedule ? (
+      {myShifts.length === 0 ? (
         <div className="rounded-lg border border-stone-200 bg-white shadow-sm p-6 text-center text-sm text-stone-400">
           No published schedule for this week yet. Check back later.
         </div>
@@ -73,14 +79,15 @@ export default async function SchedulePage() {
             <tbody>
               <tr>
                 {weekDates.map((d, i) => {
-                  const shift = schedule.shifts.find(
+                  const shift = myShifts.find(
                     (s) => new Date(s.date).toDateString() === d.toDateString()
                   );
                   return (
                     <td key={i} className="px-3 py-4 text-center align-top border-t border-stone-100">
                       {shift ? (
-                        <div className="rounded bg-stone-100 text-stone-900 px-2 py-1 text-xs font-medium">
-                          {shift.startTime}–{shift.endTime}
+                        <div className="rounded bg-stone-100 text-stone-900 px-2 py-1.5 text-xs font-medium space-y-0.5">
+                          <p>{shift.startTime}–{shift.endTime}</p>
+                          <p className="text-stone-500 font-normal truncate">{shift.locationName}</p>
                         </div>
                       ) : (
                         <span className="text-stone-300 text-xs">—</span>
