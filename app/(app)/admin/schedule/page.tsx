@@ -196,57 +196,73 @@ export default async function AdminSchedulePage({
           </p>
         </div>
 
-        <div className="flex gap-2 flex-wrap items-center">
+        <div className="flex gap-x-6 gap-y-3 flex-wrap items-end">
           {/* View toggle */}
-          <div className="flex rounded-lg border border-stone-200 overflow-hidden text-xs font-medium">
-            <Link
-              href={`/admin/schedule?locationId=${activeLocationId}&week=${weekOffset}&view=builder`}
-              className={`px-3 py-1.5 transition-colors ${activeView === "builder" ? "bg-stone-800 text-white" : "text-stone-600 hover:bg-stone-50"}`}
-            >
-              Builder
-            </Link>
-            <Link
-              href={`/admin/schedule?locationId=${activeLocationId}&week=${weekOffset}&view=roster`}
-              className={`px-3 py-1.5 border-l border-stone-200 transition-colors ${activeView === "roster" ? "bg-stone-800 text-white" : "text-stone-600 hover:bg-stone-50"}`}
-            >
-              Roster
-            </Link>
+          <div className="space-y-1.5">
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-stone-400">View</p>
+            <div className="flex rounded-lg border border-stone-200 overflow-hidden text-xs font-medium">
+              <Link
+                href={`/admin/schedule?locationId=${activeLocationId}&week=${weekOffset}&view=builder`}
+                className={`px-3 py-1.5 transition-colors ${activeView === "builder" ? "bg-stone-800 text-white" : "text-stone-600 hover:bg-stone-50"}`}
+              >
+                Builder
+              </Link>
+              <Link
+                href={`/admin/schedule?locationId=${activeLocationId}&week=${weekOffset}&view=roster`}
+                className={`px-3 py-1.5 border-l border-stone-200 transition-colors ${activeView === "roster" ? "bg-stone-800 text-white" : "text-stone-600 hover:bg-stone-50"}`}
+              >
+                Roster
+              </Link>
+            </div>
           </div>
 
+          {/* Divider */}
+          <div className="hidden sm:block self-stretch w-px bg-stone-200 my-0.5" />
+
           {/* Week selector */}
-          <div className="flex gap-1 flex-wrap">
-            {[0, 1, 2, 3].map((w) => (
-              <Link
-                key={w}
-                href={`/admin/schedule?locationId=${activeLocationId}&week=${w}&view=${activeView}`}
-                className={`rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors ${
-                  weekOffset === w
-                    ? "bg-stone-800 text-white"
-                    : "border border-stone-300 text-stone-600 hover:bg-stone-50"
-                }`}
-              >
-                {weekLabels[w]}
-              </Link>
-            ))}
+          <div className="space-y-1.5">
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-stone-400">Week</p>
+            <div className="flex gap-1 flex-wrap">
+              {[0, 1, 2, 3].map((w) => (
+                <Link
+                  key={w}
+                  href={`/admin/schedule?locationId=${activeLocationId}&week=${w}&view=${activeView}`}
+                  className={`rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors ${
+                    weekOffset === w
+                      ? "bg-stone-800 text-white"
+                      : "border border-stone-300 text-stone-600 hover:bg-stone-50"
+                  }`}
+                >
+                  {weekLabels[w]}
+                </Link>
+              ))}
+            </div>
           </div>
 
           {/* Location selector */}
           {locations.length > 1 && (
-            <div className="flex gap-1 flex-wrap">
-              {locations.map((loc) => (
-                <Link
-                  key={loc.id}
-                  href={`/admin/schedule?locationId=${loc.id}&week=${weekOffset}&view=${activeView}`}
-                  className={`rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors ${
-                    activeLocationId === loc.id
-                      ? "bg-stone-900 text-white"
-                      : "border border-stone-300 text-stone-600 hover:bg-stone-50"
-                  }`}
-                >
-                  {loc.name}
-                </Link>
-              ))}
-            </div>
+            <>
+              {/* Divider */}
+              <div className="hidden sm:block self-stretch w-px bg-stone-200 my-0.5" />
+              <div className="space-y-1.5">
+                <p className="text-[10px] font-semibold uppercase tracking-widest text-stone-400">Location</p>
+                <div className="flex gap-1 flex-wrap">
+                  {locations.map((loc) => (
+                    <Link
+                      key={loc.id}
+                      href={`/admin/schedule?locationId=${loc.id}&week=${weekOffset}&view=${activeView}`}
+                      className={`rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors ${
+                        activeLocationId === loc.id
+                          ? "bg-stone-900 text-white"
+                          : "border border-stone-300 text-stone-600 hover:bg-stone-50"
+                      }`}
+                    >
+                      {loc.name}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            </>
           )}
         </div>
       </div>
