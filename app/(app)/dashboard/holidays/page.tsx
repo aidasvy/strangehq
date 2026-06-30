@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { HolidayRequestForm } from "./holiday-request-form";
+import { CancelRequestButton } from "./cancel-request-button";
 import { computeLeaveBalance } from "@/lib/leave";
 import Link from "next/link";
 
@@ -81,7 +82,10 @@ export default async function HolidaysPage() {
                   </div>
                   {r.reason && <p className="text-xs text-stone-400 mt-0.5">{r.reason}</p>}
                 </div>
-                <StatusBadge status={r.status} />
+                <div className="flex items-center gap-3 shrink-0">
+                  {r.status === "PENDING" && <CancelRequestButton requestId={r.id} />}
+                  <StatusBadge status={r.status} />
+                </div>
               </div>
             ))}
           </div>

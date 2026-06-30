@@ -81,6 +81,6 @@ export function computeLeaveBalance(
     entitlement,
     usedDays,
     pendingDays,
-    remainingDays: Math.max(0, entitlement - usedDays),
+    remainingDays: Math.max(0, entitlement - usedDays - pendingDays),
   };
 }
