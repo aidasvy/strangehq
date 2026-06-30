@@ -11,16 +11,18 @@ export function BulkApproveButton({ pendingIds }: { pendingIds: string[] }) {
 
   async function approveAll() {
     setLoading(true);
-    await Promise.all(
+    const results = await Promise.all(
       pendingIds.map((id) =>
         fetch(`/api/time-entries/${id}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ status: "APPROVED" }),
-        })
+        }).then((r) => ({ id, ok: r.ok }))
       )
     );
     setLoading(false);
+    const failed = results.filter((r) => !r.ok).length;
+    if (failed > 0) alert(`${failed} entr${failed === 1 ? "y" : "ies"} failed to approve. Please refresh and try again.`);
     router.refresh();
   }
 

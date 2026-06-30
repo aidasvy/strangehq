@@ -22,15 +22,28 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "This invite code has reached its limit" }, { status: 400 });
   }
 
-  await db.$transaction([
-    db.companyMember.create({
-      data: { userId: session.user.id, companyId: invite.companyId, role: invite.role },
-    }),
-    db.inviteCode.update({
-      where: { id: invite.id },
-      data: { usedCount: { increment: 1 } },
-    }),
-  ]);
+  try {
+    await db.$transaction(async (tx) => {
+      // Atomically increment usedCount only if still under the limit — prevents race conditions
+      const updated = await tx.inviteCode.updateMany({
+        where: {
+          id: invite.id,
+          OR: [{ maxUses: null }, { usedCount: { lt: invite.maxUses! } }],
+        },
+        data: { usedCount: { increment: 1 } },
+      });
+      if (updated.count === 0) throw new Error("LIMIT_REACHED");
+
+      await tx.companyMember.create({
+        data: { userId: session.user.id, companyId: invite.companyId, role: invite.role },
+      });
+    });
+  } catch (err) {
+    if (err instanceof Error && err.message === "LIMIT_REACHED") {
+      return NextResponse.json({ error: "This invite code has reached its limit" }, { status: 400 });
+    }
+    throw err;
+  }
 
   return NextResponse.json({ success: true });
 }

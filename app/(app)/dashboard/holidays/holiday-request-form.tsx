@@ -17,15 +17,16 @@ interface Props {
 
 function countWeekdays(start: string, end: string): number {
   if (!start || !end) return 0;
-  const s = new Date(start);
-  const e = new Date(end);
+  // Parse as UTC to match server-side countWorkingDays which uses getUTCDay
+  const s = new Date(start + "T00:00:00Z");
+  const e = new Date(end + "T00:00:00Z");
   if (isNaN(s.getTime()) || isNaN(e.getTime()) || s > e) return 0;
   let count = 0;
   const d = new Date(s);
   while (d <= e) {
-    const dow = d.getDay();
+    const dow = d.getUTCDay();
     if (dow !== 0 && dow !== 6) count++;
-    d.setDate(d.getDate() + 1);
+    d.setUTCDate(d.getUTCDate() + 1);
   }
   return count;
 }

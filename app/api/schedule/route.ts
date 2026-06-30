@@ -42,6 +42,9 @@ export async function POST(req: Request) {
   await db.scheduleShift.deleteMany({ where: { scheduleId: schedule.id } });
 
   if (shifts?.length > 0) {
+    const invalidTime = shifts.find((s: { startTime: string; endTime: string }) => s.startTime >= s.endTime);
+    if (invalidTime) return NextResponse.json({ error: "Shift end time must be after start time" }, { status: 400 });
+
     await db.scheduleShift.createMany({
       data: shifts.map((s: { userId: string; date: string; startTime: string; endTime: string }) => ({
         scheduleId: schedule.id,

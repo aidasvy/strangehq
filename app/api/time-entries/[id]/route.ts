@@ -73,6 +73,13 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     return NextResponse.json({ error: "No valid fields to update" }, { status: 400 });
   }
 
+  // Validate final clockIn < clockOut after applying updates
+  const finalClockIn = (updates.clockIn as Date | undefined) ?? entry.clockIn;
+  const finalClockOut = (updates.clockOut as Date | null | undefined) ?? entry.clockOut;
+  if (finalClockOut && finalClockOut <= finalClockIn) {
+    return NextResponse.json({ error: "Clock-out must be after clock-in" }, { status: 400 });
+  }
+
   const updated = await db.timeEntry.update({ where: { id }, data: updates });
   return NextResponse.json(updated);
 }

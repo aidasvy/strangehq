@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { NextResponse } from "next/server";
+import { computeLeaveBalance, countWorkingDays } from "@/lib/leave";
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
@@ -21,6 +22,33 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   });
   if (!membership || (membership.role !== "ADMIN" && membership.role !== "MANAGER")) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  // When approving a paid leave request, verify the employee has enough balance
+  if (status === "APPROVED" && request.type === "PAID") {
+    const year = request.startDate.getFullYear();
+    const yearStart = new Date(Date.UTC(year, 0, 1));
+    const yearEnd = new Date(Date.UTC(year, 11, 31, 23, 59, 59));
+
+    const [employee, otherRequests] = await Promise.all([
+      db.companyMember.findUnique({ where: { userId_companyId: { userId: request.userId, companyId: request.companyId } } }),
+      db.holidayRequest.findMany({
+        where: { userId: request.userId, companyId: request.companyId, id: { not: id }, startDate: { gte: yearStart }, endDate: { lte: yearEnd } },
+      }),
+    ]);
+
+    const entitlement = (employee as { annualLeaveDays?: number } | null)?.annualLeaveDays ?? 20;
+    const approved = otherRequests.filter((r) => r.status === "APPROVED");
+    const pending = otherRequests.filter((r) => r.status === "PENDING");
+    const balance = computeLeaveBalance(entitlement, approved, pending, year);
+    const requestDays = countWorkingDays(request.startDate, request.endDate);
+
+    if (requestDays > balance.remainingDays) {
+      return NextResponse.json(
+        { error: `Insufficient leave balance: ${requestDays} days requested, ${balance.remainingDays} remaining` },
+        { status: 400 }
+      );
+    }
   }
 
   const updated = await db.holidayRequest.update({ where: { id }, data: { status } });

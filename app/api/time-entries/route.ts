@@ -30,11 +30,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid clockIn date" }, { status: 400 });
   }
 
-  // Only block duplicate open entry for self clock-in (not manual/admin entries with a clockOut)
-  if (!clockOut && userId === session.user.id) {
-    const open = await db.timeEntry.findFirst({
-      where: { userId, clockOut: null },
-    });
+  // Block duplicate open entry for anyone (not just self clock-in)
+  if (!clockOut) {
+    const open = await db.timeEntry.findFirst({ where: { userId, clockOut: null } });
     if (open) return NextResponse.json({ error: "Already clocked in" }, { status: 400 });
   }
 
@@ -44,6 +42,14 @@ export async function POST(req: Request) {
   }
   if (clockOutDate && clockOutDate <= clockInDate) {
     return NextResponse.json({ error: "Clock-out must be after clock-in" }, { status: 400 });
+  }
+
+  // Verify locationId belongs to this company
+  if (locationId) {
+    const loc = await db.location.findUnique({ where: { id: locationId } });
+    if (!loc || loc.companyId !== companyId) {
+      return NextResponse.json({ error: "Invalid location" }, { status: 400 });
+    }
   }
 
   const entry = await db.timeEntry.create({
