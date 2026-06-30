@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { HolidayRequestForm } from "./holiday-request-form";
+import { computeLeaveBalance } from "@/lib/leave";
 import Link from "next/link";
 
 export default async function HolidaysPage() {
@@ -13,48 +14,77 @@ export default async function HolidaysPage() {
   });
   if (!membership) redirect("/onboarding");
 
-  const requests = await db.holidayRequest.findMany({
-    where: { userId: session.user.id },
-    orderBy: { createdAt: "desc" },
-    take: 20,
-  });
+  const year = new Date().getFullYear();
+
+  const [allRequests] = await Promise.all([
+    db.holidayRequest.findMany({
+      where: { userId: session.user.id, companyId: membership.companyId },
+      orderBy: { createdAt: "desc" },
+      take: 30,
+    }),
+  ]);
+
+  const approved = allRequests
+    .filter((r) => r.status === "APPROVED")
+    .map((r) => ({ startDate: r.startDate, endDate: r.endDate, type: r.type }));
+  const pending = allRequests
+    .filter((r) => r.status === "PENDING")
+    .map((r) => ({ startDate: r.startDate, endDate: r.endDate, type: r.type }));
+
+  const balance = computeLeaveBalance(membership.annualLeaveDays, approved, pending, year);
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 sm:p-6 space-y-6 max-w-3xl">
       <Link href="/dashboard" className="text-sm text-stone-400 hover:text-stone-600 transition-colors">← Home</Link>
-      <h1 className="text-2xl font-bold text-stone-900">Holidays</h1>
+      <h1 className="text-2xl font-bold text-stone-900">Time Off</h1>
 
-      <HolidayRequestForm companyId={membership.companyId} />
+      {/* Balance banner */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {[
+          { label: "Entitlement", value: balance.entitlement, unit: "days", color: "text-stone-700" },
+          { label: "Used", value: balance.usedDays, unit: "days", color: "text-stone-700" },
+          { label: "Pending", value: balance.pendingDays, unit: "days", color: "text-amber-600" },
+          { label: "Remaining", value: balance.remainingDays, unit: "days", color: balance.remainingDays <= 3 ? "text-red-600" : "text-green-700" },
+        ].map((s) => (
+          <div key={s.label} className="rounded-lg border border-stone-200 bg-white shadow-sm p-3 text-center">
+            <p className={`text-2xl font-bold tabular-nums ${s.color}`}>{s.value}</p>
+            <p className="text-xs text-stone-500 mt-0.5">{s.label}</p>
+          </div>
+        ))}
+      </div>
+
+      <HolidayRequestForm companyId={membership.companyId} balance={balance} />
 
       <div className="rounded-lg border border-stone-200 bg-white shadow-sm overflow-hidden">
         <div className="px-4 py-3 border-b border-stone-100">
           <h2 className="font-semibold text-sm text-stone-900">Your requests</h2>
         </div>
-        {requests.length === 0 ? (
-          <p className="p-4 text-sm text-stone-400">No holiday requests yet</p>
+        {allRequests.length === 0 ? (
+          <p className="p-4 text-sm text-stone-400">No time off requests yet</p>
         ) : (
-          <table className="w-full text-sm">
-            <thead className="bg-stone-50">
-              <tr>
-                <th className="px-4 py-2 text-left font-medium text-stone-500">From</th>
-                <th className="px-4 py-2 text-left font-medium text-stone-500">To</th>
-                <th className="px-4 py-2 text-left font-medium text-stone-500">Reason</th>
-                <th className="px-4 py-2 text-left font-medium text-stone-500">Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-stone-100">
-              {requests.map((r) => (
-                <tr key={r.id} className="hover:bg-stone-50 transition-colors">
-                  <td className="px-4 py-3 text-stone-700">{new Date(r.startDate).toLocaleDateString("lt-LT")}</td>
-                  <td className="px-4 py-3 text-stone-700">{new Date(r.endDate).toLocaleDateString("lt-LT")}</td>
-                  <td className="px-4 py-3 text-stone-500">{r.reason ?? "—"}</td>
-                  <td className="px-4 py-3">
-                    <StatusBadge status={r.status} />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="divide-y divide-stone-100">
+            {allRequests.map((r) => (
+              <div key={r.id} className="px-4 py-3 flex items-start justify-between gap-3 flex-wrap">
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-sm font-medium text-stone-800">
+                      {new Date(r.startDate).toLocaleDateString("lt-LT")}
+                      {r.startDate.toISOString().slice(0, 10) !== r.endDate.toISOString().slice(0, 10) && (
+                        <> — {new Date(r.endDate).toLocaleDateString("lt-LT")}</>
+                      )}
+                    </span>
+                    <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
+                      r.type === "PAID" ? "bg-stone-100 text-stone-600" : "bg-orange-50 text-orange-700"
+                    }`}>
+                      {r.type === "PAID" ? "Paid" : "Unpaid"}
+                    </span>
+                  </div>
+                  {r.reason && <p className="text-xs text-stone-400 mt-0.5">{r.reason}</p>}
+                </div>
+                <StatusBadge status={r.status} />
+              </div>
+            ))}
+          </div>
         )}
       </div>
     </div>
@@ -68,7 +98,7 @@ function StatusBadge({ status }: { status: string }) {
     REJECTED: "bg-red-50 text-red-600",
   };
   return (
-    <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${styles[status] ?? ""}`}>
+    <span className={`shrink-0 inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${styles[status] ?? ""}`}>
       {status.charAt(0) + status.slice(1).toLowerCase()}
     </span>
   );

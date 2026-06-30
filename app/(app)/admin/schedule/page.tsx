@@ -143,17 +143,37 @@ export default async function AdminSchedulePage({
     endTime: s.endTime,
   })) ?? [];
 
-  // All shifts for this week (for roster view — includes all locations)
-  const allWeekShifts = await db.scheduleShift.findMany({
-    where: {
-      schedule: { companyId, status: "PUBLISHED" },
-      date: { gte: weekStart, lte: weekEnd },
-    },
-    include: {
-      schedule: { select: { location: { select: { name: true } } } },
-    },
-    orderBy: [{ date: "asc" }, { startTime: "asc" }],
-  });
+  // All shifts for this week across all locations (published + draft from OTHER locations)
+  const [allWeekShifts, crossLocationRaw] = await Promise.all([
+    db.scheduleShift.findMany({
+      where: {
+        schedule: { companyId, status: "PUBLISHED" },
+        date: { gte: weekStart, lte: weekEnd },
+      },
+      include: {
+        schedule: { select: { location: { select: { name: true } } } },
+      },
+      orderBy: [{ date: "asc" }, { startTime: "asc" }],
+    }),
+    // Cross-location: any shifts from other locations this week (draft or published)
+    db.scheduleShift.findMany({
+      where: {
+        schedule: { companyId, locationId: { not: activeLocationId } },
+        date: { gte: weekStart, lte: weekEnd },
+      },
+      include: {
+        schedule: { select: { location: { select: { name: true } } } },
+      },
+    }),
+  ]);
+
+  const crossLocationShifts = crossLocationRaw.map((s) => ({
+    userId: s.userId,
+    date: s.date.toISOString(),
+    startTime: s.startTime,
+    endTime: s.endTime,
+    locationName: s.schedule.location.name,
+  }));
 
   const rosterShifts = allWeekShifts.map((s) => ({
     userId: s.userId,
@@ -166,9 +186,9 @@ export default async function AdminSchedulePage({
   const weekLabels = ["This week", "Next week", "In 2 weeks", "In 3 weeks"];
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
       <Link href="/admin" className="text-sm text-stone-400 hover:text-stone-600 transition-colors">← Overview</Link>
-      <div className="flex items-start justify-between flex-wrap gap-4">
+      <div className="space-y-3">
         <div>
           <h1 className="text-2xl font-bold text-stone-900">Schedule</h1>
           <p className="text-sm text-stone-500">
@@ -176,7 +196,7 @@ export default async function AdminSchedulePage({
           </p>
         </div>
 
-        <div className="flex gap-3 flex-wrap items-center">
+        <div className="flex gap-2 flex-wrap items-center">
           {/* View toggle */}
           <div className="flex rounded-lg border border-stone-200 overflow-hidden text-xs font-medium">
             <Link
@@ -194,12 +214,12 @@ export default async function AdminSchedulePage({
           </div>
 
           {/* Week selector */}
-          <div className="flex gap-1">
+          <div className="flex gap-1 flex-wrap">
             {[0, 1, 2, 3].map((w) => (
               <Link
                 key={w}
                 href={`/admin/schedule?locationId=${activeLocationId}&week=${w}&view=${activeView}`}
-                className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                className={`rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors ${
                   weekOffset === w
                     ? "bg-stone-800 text-white"
                     : "border border-stone-300 text-stone-600 hover:bg-stone-50"
@@ -212,12 +232,12 @@ export default async function AdminSchedulePage({
 
           {/* Location selector */}
           {locations.length > 1 && (
-            <div className="flex gap-1">
+            <div className="flex gap-1 flex-wrap">
               {locations.map((loc) => (
                 <Link
                   key={loc.id}
                   href={`/admin/schedule?locationId=${loc.id}&week=${weekOffset}&view=${activeView}`}
-                  className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                  className={`rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors ${
                     activeLocationId === loc.id
                       ? "bg-amber-600 text-white"
                       : "border border-stone-300 text-stone-600 hover:bg-stone-50"
@@ -235,11 +255,13 @@ export default async function AdminSchedulePage({
         <ScheduleBuilder
           companyId={companyId}
           locationId={activeLocationId}
+          locationName={locations.find((l) => l.id === activeLocationId)?.name ?? ""}
           weekStart={weekStart.toISOString()}
           scheduleId={schedule?.id ?? null}
           scheduleStatus={schedule?.status ?? null}
           employees={employeeList}
           existingShifts={existingShifts}
+          crossLocationShifts={crossLocationShifts}
         />
       ) : (
         <RosterView

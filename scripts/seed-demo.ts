@@ -7,7 +7,7 @@
  */
 
 import "dotenv/config";
-import { PrismaClient } from "../app/generated/prisma/client";
+import { PrismaClient, Prisma } from "../app/generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 
 const adapter = new PrismaPg({
@@ -224,7 +224,7 @@ async function main() {
     }
   }
 
-  await db.timeEntry.createMany({ data: timeEntries as Parameters<typeof db.timeEntry.createMany>[0]["data"] });
+  await db.timeEntry.createMany({ data: timeEntries as Prisma.TimeEntryCreateManyInput[] });
   console.log(`✓ ${timeEntries.length} approved time entries (4 weeks)`);
 
   // ── 8. this week — a few pending entries ──────────────────────────────────
@@ -232,7 +232,7 @@ async function main() {
   const today = new Date();
   today.setUTCHours(0, 0, 0, 0);
 
-  const pendingEntries: Parameters<typeof db.timeEntry.createMany>[0]["data"] = [];
+  const pendingEntries: Prisma.TimeEntryCreateManyInput[] = [];
 
   for (let dayIdx = 0; dayIdx < 7; dayIdx++) {
     const date = dayOf(thisWeek, dayIdx);
@@ -276,7 +276,7 @@ async function main() {
   });
 
   // Build shift entries from WEEKLY_PATTERNS
-  const scheduleShifts: Parameters<typeof db.scheduleShift.createMany>[0]["data"] = [];
+  const scheduleShifts: Prisma.ScheduleShiftCreateManyInput[] = [];
 
   for (const u of allEmpUsers) {
     const days = WEEKLY_PATTERNS[u.id] ?? [0, 2, 4];
@@ -312,7 +312,7 @@ async function main() {
     },
   });
 
-  const nextShifts: Parameters<typeof db.scheduleShift.createMany>[0]["data"] = [];
+  const nextShifts: Prisma.ScheduleShiftCreateManyInput[] = [];
 
   for (const u of [empUsers[0], empUsers[1], empUsers[2]]) { // only 3 employees scheduled so far
     const days = WEEKLY_PATTERNS[u.id] ?? [0, 2, 4];

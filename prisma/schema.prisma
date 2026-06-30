@@ -117,12 +117,13 @@ model LocationHours {
 }
 
 model CompanyMember {
-  id          String   @id @default(cuid())
-  userId      String
-  companyId   String
-  role        Role     @default(EMPLOYEE)
-  hourlyRate  Decimal? @db.Decimal(10, 2)
-  position    String?
+  id               String   @id @default(cuid())
+  userId           String
+  companyId        String
+  role             Role     @default(EMPLOYEE)
+  hourlyRate       Decimal? @db.Decimal(10, 2)
+  position         String?
+  annualLeaveDays  Int      @default(20)
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
   createdAt   DateTime @default(now())
@@ -216,6 +217,11 @@ model Availability {
   @@unique([userId, companyId, weekStart])
 }
 
+enum LeaveType {
+  PAID
+  UNPAID
+}
+
 model HolidayRequest {
   id        String        @id @default(cuid())
   userId    String
@@ -223,6 +229,7 @@ model HolidayRequest {
   startDate DateTime      @db.Date
   endDate   DateTime      @db.Date
   reason    String?
+  type      LeaveType     @default(PAID)
   status    RequestStatus @default(PENDING)
   user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   company   Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)

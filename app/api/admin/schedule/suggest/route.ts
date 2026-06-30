@@ -1,0 +1,126 @@
+import { auth } from "@/lib/auth";
+import { db } from "@/lib/db";
+import { NextResponse } from "next/server";
+import Anthropic from "@anthropic-ai/sdk";
+
+const client = new Anthropic();
+
+const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+export async function POST(req: Request) {
+  const session = await auth();
+  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const membership = await db.companyMember.findFirst({
+    where: { userId: session.user.id },
+  });
+  if (!membership || (membership.role !== "ADMIN" && membership.role !== "MANAGER")) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  const { companyId, locationId, locationName, weekStart, employees, existingShifts, crossLocationShifts } = await req.json();
+
+  if (companyId !== membership.companyId) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  // Fetch staffing rules and location hours for context
+  const [staffingRules, locationHours] = await Promise.all([
+    db.staffingRule.findMany({ where: { locationId } }),
+    db.locationHours.findMany({ where: { locationId } }),
+  ]);
+
+  // Build week date strings
+  const ws = new Date(weekStart);
+  const weekDates = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(ws);
+    d.setDate(d.getDate() + i);
+    return d.toISOString().slice(0, 10);
+  });
+
+  const prompt = `You are a shift scheduling assistant for a Lithuanian café/restaurant called "${locationName}".
+
+Today is ${new Date().toISOString().slice(0, 10)}.
+You are building a schedule for the week of ${weekStart.slice(0, 10)} (Mon ${weekDates[0]} → Sun ${weekDates[6]}).
+
+## Employees and availability
+${employees.map((e: { id: string; name: string; availability: unknown; monthlyApprovedHours: number; monthlyScheduledHours: number }) => {
+  const avail = Array.isArray(e.availability) ? e.availability : [];
+  const availStr = avail.length === 0
+    ? "No availability submitted"
+    : avail.map((a: { day: number; startTime: string; endTime: string }) => `${DAYS[a.day - 1]}: ${a.startTime}–${a.endTime}`).join(", ");
+  const crossShifts = (crossLocationShifts as Array<{ userId: string; date: string; locationName: string; startTime: string; endTime: string }>)
+    .filter((cs) => cs.userId === e.id)
+    .map((cs) => `${cs.date}: ${cs.startTime}–${cs.endTime} at ${cs.locationName}`);
+  return `- ${e.name} (id: ${e.id}): available: ${availStr}${crossShifts.length ? `; already scheduled elsewhere: ${crossShifts.join(", ")}` : ""}; this month: ${e.monthlyApprovedHours}h approved, ${e.monthlyScheduledHours}h scheduled`;
+}).join("\n")}
+
+## Location hours
+${locationHours.length === 0
+  ? "Mon–Sun: 09:00–22:00"
+  : locationHours.map((lh) => `${DAYS[lh.dayOfWeek - 1]}: ${lh.isOpen ? `${lh.openTime}–${lh.closeTime}` : "CLOSED"}`).join(", ")}
+
+## Minimum staffing rules
+${staffingRules.length === 0
+  ? "No specific rules — aim for at least 2 staff per open day."
+  : staffingRules.map((r) => `${DAYS[r.dayOfWeek - 1]} at ${r.hour}:00 → min ${r.minStaff} staff`).join(", ")}
+
+## Existing shifts this week (already scheduled at this location — keep or adjust if needed)
+${(existingShifts as Array<{ userId: string; date: string; startTime: string; endTime: string }>).length === 0
+  ? "None"
+  : (existingShifts as Array<{ userId: string; date: string; startTime: string; endTime: string }>).map((s) => {
+      const emp = (employees as Array<{ id: string; name: string }>).find((e) => e.id === s.userId);
+      return `${emp?.name ?? s.userId} on ${s.date}: ${s.startTime}–${s.endTime}`;
+    }).join("\n")}
+
+## Your task
+Create an optimal schedule for this week. Rules:
+- Only schedule employees on days they are available (skip employees with no availability)
+- Respect their availability time windows — shift must fit within their available hours
+- Do not exceed 8h per shift or 40h per week per person
+- Do not double-book anyone at two locations at the same time
+- Distribute hours fairly — prefer employees with fewer monthly hours so far
+- Ensure each open day has enough coverage (at least 2 people, or 1 if very small team)
+- A person can work at multiple locations on different days — that's fine
+
+Respond with ONLY valid JSON in this exact format, no explanation:
+{
+  "shifts": [
+    { "userId": "<id>", "date": "<YYYY-MM-DD>", "startTime": "<HH:MM>", "endTime": "<HH:MM>" }
+  ]
+}`;
+
+  try {
+    const message = await client.messages.create({
+      model: "claude-haiku-4-5-20251001",
+      max_tokens: 1024,
+      messages: [{ role: "user", content: prompt }],
+    });
+
+    const text = message.content[0].type === "text" ? message.content[0].text : "";
+    // Extract JSON from response
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) return NextResponse.json({ error: "Could not parse AI response" }, { status: 500 });
+
+    const parsed = JSON.parse(jsonMatch[0]);
+    if (!Array.isArray(parsed.shifts)) return NextResponse.json({ error: "Invalid AI response format" }, { status: 500 });
+
+    // Validate shift dates are in the week
+    const validDates = new Set(weekDates);
+    const validUserIds = new Set((employees as Array<{ id: string }>).map((e) => e.id));
+    const validShifts = parsed.shifts.filter(
+      (s: { userId: string; date: string; startTime: string; endTime: string }) =>
+        validDates.has(s.date) && validUserIds.has(s.userId) && s.startTime && s.endTime
+    );
+
+    return NextResponse.json({ shifts: validShifts.map((s: { userId: string; date: string; startTime: string; endTime: string }) => ({
+      userId: s.userId,
+      date: new Date(s.date).toISOString(),
+      startTime: s.startTime,
+      endTime: s.endTime,
+    })) });
+  } catch (err) {
+    console.error("AI suggest error:", err);
+    return NextResponse.json({ error: "AI suggestion failed. Make sure ANTHROPIC_API_KEY is set." }, { status: 500 });
+  }
+}

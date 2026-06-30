@@ -1,12 +1,49 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-export function HolidayRequestForm({ companyId }: { companyId: string }) {
+interface Balance {
+  entitlement: number;
+  usedDays: number;
+  pendingDays: number;
+  remainingDays: number;
+}
+
+interface Props {
+  companyId: string;
+  balance: Balance;
+}
+
+function countWeekdays(start: string, end: string): number {
+  if (!start || !end) return 0;
+  const s = new Date(start);
+  const e = new Date(end);
+  if (isNaN(s.getTime()) || isNaN(e.getTime()) || s > e) return 0;
+  let count = 0;
+  const d = new Date(s);
+  while (d <= e) {
+    const dow = d.getDay();
+    if (dow !== 0 && dow !== 6) count++;
+    d.setDate(d.getDate() + 1);
+  }
+  return count;
+}
+
+export function HolidayRequestForm({ companyId, balance }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [type, setType] = useState<"PAID" | "UNPAID">("PAID");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [previewDays, setPreviewDays] = useState(0);
+
+  useEffect(() => {
+    setPreviewDays(countWeekdays(startDate, endDate));
+  }, [startDate, endDate]);
+
+  const willExceed = type === "PAID" && previewDays > balance.remainingDays;
 
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -18,9 +55,10 @@ export function HolidayRequestForm({ companyId }: { companyId: string }) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         companyId,
-        startDate: form.get("startDate"),
-        endDate: form.get("endDate"),
+        startDate,
+        endDate,
         reason: form.get("reason"),
+        type,
       }),
     });
     const data = await res.json();
@@ -29,21 +67,44 @@ export function HolidayRequestForm({ companyId }: { companyId: string }) {
       setLoading(false);
       return;
     }
-    (e.target as HTMLFormElement).reset();
+    setStartDate("");
+    setEndDate("");
     setLoading(false);
     router.refresh();
   }
 
   return (
     <div className="rounded-lg border border-stone-200 bg-white shadow-sm p-4">
-      <h2 className="font-semibold text-sm text-stone-900 mb-4">Request holiday</h2>
+      <h2 className="font-semibold text-sm text-stone-900 mb-4">Request time off</h2>
       <form onSubmit={submit} className="space-y-3">
+        {/* Type toggle */}
+        <div>
+          <label className="block text-xs font-medium text-stone-700 mb-1.5">Type</label>
+          <div className="flex rounded-lg border border-stone-200 overflow-hidden w-fit text-xs font-medium">
+            <button
+              type="button"
+              onClick={() => setType("PAID")}
+              className={`px-4 py-1.5 transition-colors ${type === "PAID" ? "bg-stone-800 text-white" : "text-stone-600 hover:bg-stone-50"}`}
+            >
+              Paid leave
+            </button>
+            <button
+              type="button"
+              onClick={() => setType("UNPAID")}
+              className={`px-4 py-1.5 border-l border-stone-200 transition-colors ${type === "UNPAID" ? "bg-stone-800 text-white" : "text-stone-600 hover:bg-stone-50"}`}
+            >
+              Unpaid
+            </button>
+          </div>
+        </div>
+
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="block text-xs font-medium text-stone-700 mb-1">From</label>
             <input
               type="date"
-              name="startDate"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
               required
               className="w-full rounded border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-amber-500"
             />
@@ -52,12 +113,30 @@ export function HolidayRequestForm({ companyId }: { companyId: string }) {
             <label className="block text-xs font-medium text-stone-700 mb-1">To</label>
             <input
               type="date"
-              name="endDate"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
               required
               className="w-full rounded border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-amber-500"
             />
           </div>
         </div>
+
+        {/* Preview */}
+        {previewDays > 0 && (
+          <div className={`rounded-lg px-3 py-2 text-sm ${willExceed ? "bg-red-50 border border-red-200" : "bg-stone-50 border border-stone-200"}`}>
+            <span className={`font-medium ${willExceed ? "text-red-700" : "text-stone-700"}`}>
+              {previewDays} working day{previewDays !== 1 ? "s" : ""}
+            </span>
+            {type === "PAID" && (
+              <span className={`ml-2 text-xs ${willExceed ? "text-red-500" : "text-stone-400"}`}>
+                {willExceed
+                  ? `Exceeds your ${balance.remainingDays} remaining days`
+                  : `${balance.remainingDays - previewDays} remaining after`}
+              </span>
+            )}
+          </div>
+        )}
+
         <div>
           <label className="block text-xs font-medium text-stone-700 mb-1">Reason (optional)</label>
           <input

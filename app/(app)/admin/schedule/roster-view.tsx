@@ -60,7 +60,7 @@ export function RosterView({ weekStart, employees, shifts }: Props) {
   return (
     <div className="space-y-6">
       {/* Day-by-day roster */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {weekDates.map((date, dayIdx) => {
           const dateStr = date.toDateString();
           const dayShifts = shifts.filter((s) => new Date(s.date).toDateString() === dateStr);
@@ -148,10 +148,42 @@ export function RosterView({ weekStart, employees, shifts }: Props) {
         })}
       </div>
 
-      {/* Monthly hours summary table */}
+      {/* Monthly hours summary */}
       <div>
         <h2 className="text-base font-semibold text-stone-900 mb-3">Team — this month</h2>
-        <div className="rounded-lg border border-stone-200 bg-white shadow-sm overflow-hidden">
+
+        {/* Mobile: cards */}
+        <div className="sm:hidden space-y-2">
+          {employees.map((emp) => {
+            const gap = emp.monthlyScheduledHours - emp.monthlyApprovedHours;
+            return (
+              <div key={emp.id} className="rounded-lg border border-stone-200 bg-white shadow-sm px-4 py-3">
+                <div className="flex items-center gap-1.5 mb-1">
+                  <span className="font-medium text-stone-800 text-sm">{emp.name ?? "—"}</span>
+                  {emp.role !== "EMPLOYEE" && (
+                    <span className={`inline-flex rounded-full px-1.5 py-0 text-xs font-medium ${ROLE_BADGE[emp.role]}`}>
+                      {emp.role === "MANAGER" ? "Mgr" : "Admin"}
+                    </span>
+                  )}
+                </div>
+                <div className="flex gap-4 text-xs text-stone-500 mb-1.5">
+                  <span>Approved: <strong className="text-stone-700">{emp.monthlyApprovedHours}h</strong></span>
+                  <span>Scheduled: <strong className="text-stone-700">{emp.monthlyScheduledHours}h</strong></span>
+                  <span className={`font-semibold ${gap > 0 ? "text-amber-600" : gap < 0 ? "text-red-500" : "text-stone-400"}`}>
+                    {gap > 0 ? `+${gap.toFixed(1)}h` : gap < 0 ? `${gap.toFixed(1)}h` : "On track"}
+                  </span>
+                </div>
+                <div className="flex gap-3 text-xs">
+                  {emp.phone && <a href={`tel:${emp.phone}`} className="text-stone-500">📞 {emp.phone}</a>}
+                  <a href={`mailto:${emp.email}`} className="text-stone-400">✉ {emp.email}</a>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Desktop: table */}
+        <div className="hidden sm:block rounded-lg border border-stone-200 bg-white shadow-sm overflow-hidden">
           <table className="w-full text-sm">
             <thead className="bg-stone-50">
               <tr>
@@ -179,22 +211,12 @@ export function RosterView({ weekStart, employees, shifts }: Props) {
                     </td>
                     <td className="px-4 py-3">
                       <div className="space-y-0.5">
-                        {emp.phone && (
-                          <a href={`tel:${emp.phone}`} className="block text-xs text-stone-500 hover:text-stone-800">
-                            📞 {emp.phone}
-                          </a>
-                        )}
-                        <a href={`mailto:${emp.email}`} className="block text-xs text-stone-400 hover:text-stone-600">
-                          ✉ {emp.email}
-                        </a>
+                        {emp.phone && <a href={`tel:${emp.phone}`} className="block text-xs text-stone-500 hover:text-stone-800">📞 {emp.phone}</a>}
+                        <a href={`mailto:${emp.email}`} className="block text-xs text-stone-400 hover:text-stone-600">✉ {emp.email}</a>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-right tabular-nums text-stone-700">
-                      {emp.monthlyApprovedHours}h
-                    </td>
-                    <td className="px-4 py-3 text-right tabular-nums text-stone-700">
-                      {emp.monthlyScheduledHours}h
-                    </td>
+                    <td className="px-4 py-3 text-right tabular-nums text-stone-700">{emp.monthlyApprovedHours}h</td>
+                    <td className="px-4 py-3 text-right tabular-nums text-stone-700">{emp.monthlyScheduledHours}h</td>
                     <td className={`px-4 py-3 text-right tabular-nums font-medium ${gap > 0 ? "text-amber-600" : gap < 0 ? "text-red-500" : "text-stone-400"}`}>
                       {gap > 0 ? `+${gap.toFixed(1)}h` : gap < 0 ? `${gap.toFixed(1)}h` : "—"}
                     </td>
@@ -204,9 +226,7 @@ export function RosterView({ weekStart, employees, shifts }: Props) {
             </tbody>
           </table>
         </div>
-        <p className="text-xs text-stone-400 mt-2">
-          Gap = scheduled − approved. Positive means more shifts planned than hours clocked. Negative means clocked more than scheduled.
-        </p>
+        <p className="text-xs text-stone-400 mt-2">Gap = scheduled − approved. Positive = more shifts than hours clocked.</p>
       </div>
     </div>
   );

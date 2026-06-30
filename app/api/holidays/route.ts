@@ -6,7 +6,7 @@ export async function POST(req: Request) {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { companyId, startDate, endDate, reason } = await req.json();
+  const { companyId, startDate, endDate, reason, type } = await req.json();
 
   if (!startDate || !endDate) {
     return NextResponse.json({ error: "Start and end dates are required" }, { status: 400 });
@@ -27,6 +27,7 @@ export async function POST(req: Request) {
       startDate: new Date(startDate),
       endDate: new Date(endDate),
       reason: reason || null,
+      type: type === "UNPAID" ? "UNPAID" : "PAID",
     },
   });
 
