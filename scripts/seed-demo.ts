@@ -71,12 +71,6 @@ async function main() {
   const companyId = adminMembership.companyId;
   console.log(`✓ Company: ${adminMembership.company.name} (${companyId})`);
 
-  // ── 2. upsert company name ─────────────────────────────────────────────────
-  await db.company.update({
-    where: { id: companyId },
-    data: { name: "Strange Love Coffee" },
-  });
-
   // ── 3. payroll config ──────────────────────────────────────────────────────
   await db.payrollConfig.upsert({
     where: { companyId },
@@ -411,7 +405,7 @@ async function main() {
   console.log("✓ Holiday requests (3 total: 2 pending, 1 approved)");
 
   console.log("\n🎉  Seed complete!");
-  console.log(`    Company: Strange Love Coffee`);
+  console.log(`    Company: ${adminMembership.company.name}`);
   console.log(`    Employees: ${allEmpUsers.length} total (including admin)`);
   console.log(`    Time entries: ${timeEntries.length + pendingEntries.length} total`);
 }
