@@ -120,7 +120,7 @@ Respond with ONLY valid JSON in this exact format, no explanation:
   try {
     const message = await client.messages.create({
       model: "claude-haiku-4-5-20251001",
-      max_tokens: 1024,
+      max_tokens: 512,
       messages: [{ role: "user", content: prompt }],
     });
 
