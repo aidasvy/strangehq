@@ -24,10 +24,14 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  // Fetch staffing rules and location hours for context
-  const [staffingRules, locationHours] = await Promise.all([
+  // Fetch staffing rules and location hours for this location + all other locations company-wide
+  const [staffingRules, locationHours, otherLocations] = await Promise.all([
     db.staffingRule.findMany({ where: { locationId } }),
     db.locationHours.findMany({ where: { locationId } }),
+    db.location.findMany({
+      where: { companyId, id: { not: locationId }, isActive: true },
+      include: { staffingRules: true, locationHours: true },
+    }),
   ]);
 
   // Build week date strings
@@ -64,6 +68,29 @@ ${locationHours.length === 0
 ${staffingRules.length === 0
   ? "No specific rules — aim for at least 2 staff per open day."
   : staffingRules.map((r) => `${DAYS[r.dayOfWeek - 1]} at ${r.hour}:00 → min ${r.minStaff} staff`).join(", ")}
+
+## Other company locations this week (for allocation context — do NOT generate shifts for these)
+${otherLocations.length === 0
+  ? "None — this is the only location."
+  : otherLocations.map((loc) => {
+      const hours = loc.locationHours.length === 0
+        ? "Mon–Sun: 09:00–22:00 (default)"
+        : loc.locationHours.map((lh) => `${DAYS[lh.dayOfWeek - 1]}: ${lh.isOpen ? `${lh.openTime}–${lh.closeTime}` : "CLOSED"}`).join(", ");
+      const rules = loc.staffingRules.length === 0
+        ? "no specific rules (aim for 2+ staff per open day)"
+        : loc.staffingRules.map((r) => `${DAYS[r.dayOfWeek - 1]} at ${r.hour}:00 → min ${r.minStaff} staff`).join(", ");
+      const committed = (crossLocationShifts as Array<{ userId: string; date: string; startTime: string; endTime: string; locationName: string }>)
+        .filter((cs) => cs.locationName === loc.name);
+      const committedStr = committed.length === 0
+        ? "no shifts committed yet"
+        : committed.map((cs) => {
+            const emp = (employees as Array<{ id: string; name: string }>).find((e) => e.id === cs.userId);
+            return `${emp?.name ?? cs.userId} on ${cs.date} ${cs.startTime}–${cs.endTime}`;
+          }).join(", ");
+      return `### ${loc.name}\n- Hours: ${hours}\n- Staffing rules: ${rules}\n- Already committed: ${committedStr}`;
+    }).join("\n\n")}
+
+Use this context to avoid over-allocating employees who are already committed at other locations, and to prioritise employees where their absence would leave another location under-staffed.
 
 ## Existing shifts this week (already scheduled at this location — keep or adjust if needed)
 ${(existingShifts as Array<{ userId: string; date: string; startTime: string; endTime: string }>).length === 0
