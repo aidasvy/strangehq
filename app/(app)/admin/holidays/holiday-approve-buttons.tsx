@@ -9,12 +9,17 @@ export function HolidayApproveButtons({ requestId }: { requestId: string }) {
 
   async function update(status: "APPROVED" | "REJECTED") {
     setLoading(true);
-    await fetch(`/api/holidays/${requestId}`, {
+    const res = await fetch(`/api/holidays/${requestId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status }),
     });
     setLoading(false);
+    if (!res.ok) {
+      const data = await res.json();
+      alert(data.error ?? "Failed to update request");
+      return;
+    }
     router.refresh();
   }
 
