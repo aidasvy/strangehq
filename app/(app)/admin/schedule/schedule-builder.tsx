@@ -37,6 +37,18 @@ function StatusDot({ error }: { error: boolean }) {
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
+function parseISODate(isoDate: string): string {
+  return isoDate.split("T")[0];
+}
+
+function getDateString(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+
 type Role = "EMPLOYEE" | "MANAGER" | "ADMIN";
 
 const ROLE_BADGE: Record<Role, string> = {
@@ -151,7 +163,7 @@ export function ScheduleBuilder({
 
   function addShift(userId: string, date: Date) {
     const already = shifts.find(
-      (s) => s.userId === userId && new Date(s.date).toDateString() === date.toDateString()
+      (s) => s.userId === userId && parseISODate(s.date) === date.toDateString()
     );
     if (already) return;
     const dayNum = date.getDay() === 0 ? 7 : date.getDay();
@@ -164,7 +176,7 @@ export function ScheduleBuilder({
 
   function removeShift(userId: string, date: Date) {
     setShifts((prev) =>
-      prev.filter((s) => !(s.userId === userId && new Date(s.date).toDateString() === date.toDateString()))
+      prev.filter((s) => !(s.userId === userId && parseISODate(s.date) === date.toDateString()))
     );
   }
 
@@ -177,7 +189,7 @@ export function ScheduleBuilder({
   function updateShift(userId: string, date: Date, field: "startTime" | "endTime", value: string) {
     setShifts((prev) =>
       prev.map((s) =>
-        s.userId === userId && new Date(s.date).toDateString() === date.toDateString()
+        s.userId === userId && parseISODate(s.date) === date.toDateString()
           ? { ...s, [field]: value }
           : s
       )
@@ -286,7 +298,7 @@ export function ScheduleBuilder({
 
         // Cross-location conflict
         const crossShift = crossLocationShifts.find(
-          (cs) => cs.userId === emp.id && new Date(cs.date).toDateString() === date.toDateString()
+          (cs) => cs.userId === emp.id && parseISODate(cs.date) === date.toDateString()
         );
         if (crossShift) {
           const myStart = timeToMinutes(s.startTime);
@@ -331,10 +343,10 @@ export function ScheduleBuilder({
   // Render a single shift cell (shared between desktop and mobile)
   function ShiftCell({ emp, date, dayNum }: { emp: Employee; date: Date; dayNum: number }) {
     const hasAvailData = Array.isArray(emp.availability) && (emp.availability as unknown[]).length > 0;
-    const shift = shifts.find((s) => s.userId === emp.id && new Date(s.date).toDateString() === date.toDateString());
+    const shift = shifts.find((s) => s.userId === emp.id && parseISODate(s.date) === date.toDateString());
     const avail = getAvailability(emp.availability, dayNum);
     const crossShift = crossLocationShifts.find(
-      (cs) => cs.userId === emp.id && new Date(cs.date).toDateString() === date.toDateString()
+      (cs) => cs.userId === emp.id && parseISODate(cs.date) === date.toDateString()
     );
     const status = getCellStatus(shift, avail, hasAvailData, !!crossShift);
 
@@ -475,7 +487,7 @@ export function ScheduleBuilder({
         <div className="flex gap-1 overflow-x-auto pb-1 -mx-1 px-1">
           {weekDates.map((d, i) => {
             const isToday = d.toDateString() === new Date().toDateString();
-            const dayShiftCount = shifts.filter((s) => new Date(s.date).toDateString() === d.toDateString()).length;
+            const dayShiftCount = shifts.filter((s) => parseISODate(s.date) === d.toDateString()).length;
             return (
               <button
                 key={i}
@@ -503,7 +515,7 @@ export function ScheduleBuilder({
           {employees.map((emp) => {
             const date = weekDates[activeMobileDay];
             const dayNum = activeMobileDay + 1;
-            const shift = shifts.find((s) => s.userId === emp.id && new Date(s.date).toDateString() === date.toDateString());
+            const shift = shifts.find((s) => s.userId === emp.id && parseISODate(s.date) === date.toDateString());
             const weekH = weekHoursByEmployee[emp.id] ?? 0;
 
             return (

@@ -66,7 +66,9 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
           targetShift: tgtShiftRow,
           isRequester: true,
           appUrl: APP_URL,
-        }).catch(() => {});
+        }).catch((err) => {
+          console.error("[Shift Swaps] Failed to send rejection email:", err);
+        });
       }
 
       return NextResponse.json({ status: "REJECTED" });
@@ -91,7 +93,9 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
             appUrl: APP_URL,
           })
         )
-      ).catch(() => {});
+      ).catch((err) => {
+        console.error("[Shift Swaps] Failed to send admin notification emails:", err);
+      });
     }
 
     return NextResponse.json({ status: "PENDING_ADMIN" });
@@ -152,7 +156,9 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
           isRequester: false,
           appUrl: APP_URL,
         }),
-      ]).catch(() => {});
+      ]).catch((err) => {
+        console.error("[Shift Swaps] Failed to send outcome emails:", err);
+      });
     }
 
     return NextResponse.json({ status: action === "approve" ? "APPROVED" : "REJECTED" });

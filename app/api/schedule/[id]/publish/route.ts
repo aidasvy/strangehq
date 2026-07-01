@@ -64,7 +64,9 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
           appUrl: APP_URL,
         })
       )
-    ).catch(() => {});
+    ).catch((err) => {
+      console.error("[Schedule Publish] Failed to send notification emails:", err);
+    });
   }
 
   return NextResponse.json(updated);

@@ -118,7 +118,9 @@ export async function POST(req: Request) {
       targetShift: toShiftRow(targetShift as typeof requesterShift, targetShift.schedule.location.name),
       swapId: swap.id,
       appUrl: APP_URL,
-    }).catch(() => {});
+    }).catch((err) => {
+      console.error("[Shift Swaps] Failed to send swap request email:", err);
+    });
   }
 
   return NextResponse.json(swap, { status: 201 });

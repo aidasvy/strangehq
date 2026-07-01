@@ -10,11 +10,17 @@ export function SwapActions({ swapId }: { swapId: string }) {
 
   async function act(action: "approve" | "deny") {
     setLoading(action);
-    await fetch(`/api/shift-swaps/${swapId}`, {
+    const res = await fetch(`/api/shift-swaps/${swapId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action }),
     });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      alert(data.error ?? "Failed to update swap request");
+      setLoading(null);
+      return;
+    }
     setDone(true);
     router.refresh();
   }

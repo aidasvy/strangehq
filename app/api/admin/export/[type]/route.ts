@@ -27,6 +27,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ type: st
       where: { companyId },
       include: { user: { select: { name: true, email: true } } },
       orderBy: { createdAt: "asc" },
+      take: 10000,
     });
     const rows = [
       ["Name", "Email", "Role", "Position", "Gross hourly rate (€)", "Joined"],

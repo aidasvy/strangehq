@@ -19,7 +19,7 @@ export async function POST(req: Request) {
   const { name } = await req.json();
   if (!name?.trim()) return NextResponse.json({ error: "Company name is required" }, { status: 400 });
 
-  const existing = await db.companyMember.findFirst({ where: { userId: session.user.id } });
+  const existing = await db.companyMember.findFirst({ where: { userId: session.user.id, isActive: true } });
   if (existing) return NextResponse.json({ error: "You already belong to a company" }, { status: 400 });
 
   const slug = name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-") + "-" + Date.now().toString(36);

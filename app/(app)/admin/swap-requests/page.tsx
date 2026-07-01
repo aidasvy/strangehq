@@ -2,10 +2,12 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { cookies } from "next/headers";
+import { getTranslations } from "@/lib/i18n/translations";
 import { SwapActions } from "./swap-actions";
 
-function fmtShift(date: Date, startTime: string, endTime: string, location: string) {
-  const day = date.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" });
+function fmtShift(date: Date, startTime: string, endTime: string, location: string, dateLocale: string) {
+  const day = date.toLocaleDateString(dateLocale, { weekday: "short", day: "numeric", month: "short" });
   return `${day} · ${startTime}–${endTime} @ ${location}`;
 }
 
@@ -28,7 +30,7 @@ function fmtHours(h: number): string {
   return `${h.toFixed(1)}h`;
 }
 
-function statusBadge(status: string) {
+function statusBadge(status: string, t: ReturnType<typeof getTranslations>) {
   const styles: Record<string, string> = {
     PENDING_TARGET: "bg-amber-50 text-amber-700 border-amber-200",
     PENDING_ADMIN: "bg-blue-50 text-blue-700 border-blue-200",
@@ -36,8 +38,8 @@ function statusBadge(status: string) {
     REJECTED: "bg-stone-100 text-stone-500 border-stone-200",
   };
   const labels: Record<string, string> = {
-    PENDING_TARGET: "Awaiting colleague",
-    PENDING_ADMIN: "Needs approval",
+    PENDING_TARGET: t.adminShiftSwaps.awaitingColleague,
+    PENDING_ADMIN: t.adminShiftSwaps.pendingApproval,
     APPROVED: "Approved",
     REJECTED: "Rejected",
   };
@@ -55,6 +57,9 @@ const IMBALANCE_THRESHOLD_HOURS = 1;
 export default async function SwapRequestsPage() {
   const session = await auth();
   if (!session?.user?.id) redirect("/sign-in");
+
+  const locale = (await cookies()).get("locale")?.value ?? "lt";
+  const t = getTranslations(locale);
 
   const membership = await db.companyMember.findFirst({
     where: { userId: session.user.id },
@@ -111,21 +116,21 @@ export default async function SwapRequestsPage() {
 
   return (
     <div className="p-4 sm:p-6 space-y-6">
-      <Link href="/admin" className="text-sm text-stone-400 hover:text-stone-600 transition-colors">← Overview</Link>
+      <Link href="/admin" className="text-sm text-stone-400 hover:text-stone-600 transition-colors">← {t.common.backOverview}</Link>
       <div>
-        <h1 className="font-display font-bold text-2xl uppercase tracking-wide text-black">Shift swaps</h1>
+        <h1 className="font-display font-bold text-2xl uppercase tracking-wide text-black">{t.adminShiftSwaps.title}</h1>
         <p className="text-sm text-stone-500 mt-0.5">Review and approve swap requests between employees.</p>
       </div>
 
       {swaps.length === 0 && (
         <div className="rounded-lg border border-stone-200 bg-white shadow-sm p-8 text-center text-sm text-stone-400">
-          No swap requests yet.
+          {t.adminShiftSwaps.noRequests}
         </div>
       )}
 
       {pending.length > 0 && (
         <section className="space-y-3">
-          <h2 className="text-xs font-semibold uppercase tracking-widest text-stone-400">Needs your approval</h2>
+          <h2 className="text-xs font-semibold uppercase tracking-widest text-stone-400">{t.adminShiftSwaps.pendingApproval}</h2>
           {pending.map((sw) => {
             const reqShiftH = shiftHours(sw.requesterShift.startTime, sw.requesterShift.endTime);
             const tgtShiftH = shiftHours(sw.targetShift.startTime, sw.targetShift.endTime);
@@ -147,10 +152,10 @@ export default async function SwapRequestsPage() {
                       {sw.requester.name} ↔ {sw.targetUser.name}
                     </p>
                     <p className="text-xs text-stone-500 mt-0.5">
-                      Requested {sw.createdAt.toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
+                      Requested {sw.createdAt.toLocaleDateString(t.dateLocale, { day: "numeric", month: "short" })}
                     </p>
                   </div>
-                  <div className="shrink-0">{statusBadge(sw.status)}</div>
+                  <div className="shrink-0">{statusBadge(sw.status, t)}</div>
                 </div>
 
                 {imbalanced && (
@@ -159,7 +164,7 @@ export default async function SwapRequestsPage() {
                       <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
                     </svg>
                     <p className="text-xs text-amber-800">
-                      Uneven trade — {fmtHours(reqShiftH)} for {fmtHours(tgtShiftH)} (Δ {fmtHours(hourDiff)}). This changes both people&apos;s hours for the week.
+                      {t.adminShiftSwaps.unevenTrade} — {fmtHours(reqShiftH)} for {fmtHours(tgtShiftH)} (Δ {fmtHours(hourDiff)}). This changes both people&apos;s hours for the week.
                     </p>
                   </div>
                 )}
@@ -170,7 +175,7 @@ export default async function SwapRequestsPage() {
                       <p className="text-stone-400">{sw.requester.name} takes</p>
                       <span className="shrink-0 font-mono font-semibold text-stone-600">{fmtHours(tgtShiftH)}</span>
                     </div>
-                    <p className="font-medium text-stone-800 break-words">{fmtShift(sw.targetShift.date, sw.targetShift.startTime, sw.targetShift.endTime, sw.targetShift.schedule.location.name)}</p>
+                    <p className="font-medium text-stone-800 break-words">{fmtShift(sw.targetShift.date, sw.targetShift.startTime, sw.targetShift.endTime, sw.targetShift.schedule.location.name, t.dateLocale)}</p>
                   </div>
                   <div className="rounded-md bg-stone-50 p-3 min-w-0">
                     <div className="flex items-center justify-between gap-2 mb-1">
@@ -214,11 +219,11 @@ export default async function SwapRequestsPage() {
                     {sw.requester.name} ↔ {sw.targetUser.name}
                   </p>
                   <p className="text-xs text-stone-400 mt-0.5 break-words">
-                    {fmtShift(sw.requesterShift.date, sw.requesterShift.startTime, sw.requesterShift.endTime, sw.requesterShift.schedule.location.name)} →{" "}
-                    {fmtShift(sw.targetShift.date, sw.targetShift.startTime, sw.targetShift.endTime, sw.targetShift.schedule.location.name)}
+                    {fmtShift(sw.requesterShift.date, sw.requesterShift.startTime, sw.requesterShift.endTime, sw.requesterShift.schedule.location.name, t.dateLocale)} →{" "}
+                    {fmtShift(sw.targetShift.date, sw.targetShift.startTime, sw.targetShift.endTime, sw.targetShift.schedule.location.name, t.dateLocale)}
                   </p>
                 </div>
-                <div className="shrink-0">{statusBadge(sw.status)}</div>
+                <div className="shrink-0">{statusBadge(sw.status, t)}</div>
               </div>
             ))}
           </div>

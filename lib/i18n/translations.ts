@@ -25,6 +25,7 @@ const en = {
     start: "Start →",
     pendingEntries: (n: number): string => `${n} entries awaiting approval`,
     pendingHolidays: (n: number): string => `${n} holiday requests pending`,
+    pendingSwaps: (n: number): string => `${n} shift swap request${n !== 1 ? "s" : ""} waiting for your response`,
     view: "View →",
     thisWeek: "This week",
     approvedHours: "approved hours",
@@ -98,6 +99,8 @@ const en = {
     settingsDesc: "Generate codes to onboard new employees",
     payroll: "Payroll",
     payrollDesc: "Monthly salary summary with tax breakdown",
+    shiftSwaps: "Shift swaps",
+    shiftSwapsDesc: "Review and approve shift swap requests",
   },
 
   adminSchedule: {
@@ -174,6 +177,13 @@ const en = {
     title: "Settings",
     inviteCodes: "Invite codes",
     inviteDesc: "Generate codes to share with employees. They sign in with Google and enter the code to join.",
+    generateCode: "Generate invite code",
+    generating: "Generating…",
+    copyCode: "Copy",
+    copied: "Copied!",
+    deleteCode: "Delete",
+    deleteConfirm: "Delete this invite code?",
+    codeTableHeader: "Code/Role/Uses/Created",
   },
 
   adminPayroll: {
@@ -265,6 +275,28 @@ const en = {
     save: "Save",
     saved: "Saved!",
   },
+
+  adminShiftSwaps: {
+    title: "Shift swaps",
+    noRequests: "No shift swap requests",
+    pendingApproval: "Needs your approval",
+    awaitingColleague: "Awaiting colleague",
+    unevenTrade: "Uneven trade",
+    approve: "Approve",
+    deny: "Deny",
+  },
+
+  dashShiftSwaps: {
+    requestTitle: "Request shift swap",
+    yourShift: "Your shift:",
+    theyGiveUp: "They give up:",
+    youGiveUp: "You give up:",
+    noOtherShifts: "No other shifts this week to swap with.",
+    accept: "Accept",
+    decline: "Decline",
+    sending: "Sending…",
+    swapRequestFrom: "Swap request from",
+  },
 };
 
 const lt: typeof en = {
@@ -292,6 +324,7 @@ const lt: typeof en = {
     start: "Pradėti →",
     pendingEntries: (n: number): string => `${n} įrašai laukiantys patvirtinimo`,
     pendingHolidays: (n: number): string => `laukiantys atostogų prašymai: ${n}`,
+    pendingSwaps: (n: number): string => `${n} pamainu sukeitymo prašym${n !== 1 ? "ai" : "as"} laukia tavo atsakymo`,
     view: "Žiūrėti →",
     thisWeek: "Ši savaitė",
     approvedHours: "patvirtintos valandos",
@@ -370,6 +403,8 @@ const lt: typeof en = {
     settingsDesc: "Sukurk kodus naujiems darbuotojams",
     payroll: "Payroll",
     payrollDesc: "Mėnesio atlyginimų suvestinė su mokesčiais",
+    shiftSwaps: "Pamainu sukeitymai",
+    shiftSwapsDesc: "Peržiūrėk ir patvirtink pamainu sukeitymo prašymus",
   },
 
   adminSchedule: {
@@ -449,6 +484,13 @@ const lt: typeof en = {
     title: "Nustatymai",
     inviteCodes: "Pakvietimo kodai",
     inviteDesc: "Sukurk kodus dalintis su darbuotojais. Jie prisijungia su Google ir įveda kodą.",
+    generateCode: "Sukurti pakvietimo kodą",
+    generating: "Kuriama…",
+    copyCode: "Kopijuoti",
+    copied: "Kopijuota!",
+    deleteCode: "Ištrinti",
+    deleteConfirm: "Ištrinti šį pakvietimo kodą?",
+    codeTableHeader: "Kodas/Role/Panaudojimas/Sukurta",
   },
 
   adminPayroll: {
@@ -539,6 +581,28 @@ const lt: typeof en = {
     saving: "Išsaugoma…",
     save: "Išsaugoti",
     saved: "Išsaugota!",
+  },
+
+  adminShiftSwaps: {
+    title: "Pamainu sukeitymai",
+    noRequests: "Nėra pamainu sukeitymo prašymų",
+    pendingApproval: "Reikalingas tavo patvirtinimas",
+    awaitingColleague: "Laukia kolegos atsakymo",
+    unevenTrade: "Nevienodas sandoris",
+    approve: "Patvirtinti",
+    deny: "Atmesti",
+  },
+
+  dashShiftSwaps: {
+    requestTitle: "Prašyti pamainu sukeitymo",
+    yourShift: "Tavo pamaina:",
+    theyGiveUp: "Jie atiduoda:",
+    youGiveUp: "Tu atiduodi:",
+    noOtherShifts: "Nėra kitų pamainu šią savaitę.",
+    accept: "Priimti",
+    decline: "Atmesti",
+    sending: "Siunčiama…",
+    swapRequestFrom: "Pamainu sukeitymo prašymas iš",
   },
 };
 

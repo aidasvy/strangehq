@@ -12,7 +12,13 @@ export function CancelRequestButton({ requestId }: { requestId: string }) {
   async function cancel() {
     if (!confirm(t.timeOff.cancelConfirm)) return;
     setLoading(true);
-    await fetch(`/api/holidays/${requestId}`, { method: "DELETE" });
+    const res = await fetch(`/api/holidays/${requestId}`, { method: "DELETE" });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      alert(data.error ?? "Failed to cancel request");
+      setLoading(false);
+      return;
+    }
     setLoading(false);
     router.refresh();
   }

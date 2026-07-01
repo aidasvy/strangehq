@@ -141,7 +141,7 @@ export default async function DashboardPage() {
             <path strokeLinecap="round" strokeLinejoin="round" d="M16 3l4 4-4 4M20 7H8a4 4 0 00-4 4v1m4 9l-4-4 4-4M4 17h12a4 4 0 004-4v-1" />
           </svg>
           <p className="text-sm text-purple-800">
-            {pendingSwaps.length} shift swap request{pendingSwaps.length !== 1 ? "s" : ""} waiting for your response
+            {t.dash.pendingSwaps(pendingSwaps.length)}
           </p>
           <span className="ml-auto text-xs text-purple-600">{t.dash.view}</span>
         </Link>

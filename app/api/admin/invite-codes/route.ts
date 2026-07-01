@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 import { randomBytes } from "crypto";
 
 function generateCode(): string {
-  return randomBytes(4).toString("hex").toUpperCase();
+  return randomBytes(6).toString("hex").toUpperCase();
 }
 
 export async function POST(req: Request) {

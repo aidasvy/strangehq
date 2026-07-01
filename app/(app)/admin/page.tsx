@@ -101,7 +101,7 @@ export default async function AdminPage() {
         <QuickAction href="/admin/time-entries" title={t.adminOverview.approveEntries} desc={t.adminOverview.approveEntriesDesc} />
         <QuickAction href="/admin/holidays" title={t.adminOverview.holidayRequests} desc={t.adminOverview.holidayRequestsDesc} />
         <QuickAction href="/admin/locations" title={t.adminOverview.locationsStaffing} desc={t.adminOverview.locationsDesc} />
-        <QuickAction href="/admin/swap-requests" title="Shift swaps" desc="Review and approve shift swap requests" />
+        <QuickAction href="/admin/swap-requests" title={t.adminOverview.shiftSwaps} desc={t.adminOverview.shiftSwapsDesc} />
         <QuickAction href="/admin/settings" title={t.adminOverview.settingsInvite} desc={t.adminOverview.settingsDesc} />
       </div>
     </div>

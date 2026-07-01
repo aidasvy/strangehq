@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useLocale } from "@/lib/i18n/context";
 
 interface Code {
   id: string;
@@ -15,13 +16,14 @@ interface Code {
 
 export function InviteCodeManager({ companyId, codes: initial }: { companyId: string; codes: Code[] }) {
   const router = useRouter();
+  const { t } = useLocale();
   const [codes, setCodes] = useState(initial);
   const [creating, setCreating] = useState(false);
   const [role, setRole] = useState<"EMPLOYEE" | "ADMIN">("EMPLOYEE");
   const [copied, setCopied] = useState<string | null>(null);
 
   async function remove(id: string) {
-    if (!confirm("Delete this invite code?")) return;
+    if (!confirm(t.adminSettings.deleteConfirm)) return;
     const res = await fetch(`/api/admin/invite-codes/${id}`, { method: "DELETE" });
     if (res.ok) setCodes((prev) => prev.filter((c) => c.id !== id));
   }
@@ -63,7 +65,7 @@ export function InviteCodeManager({ companyId, codes: initial }: { companyId: st
           disabled={creating}
           className="rounded-lg bg-stone-800 px-4 py-2 text-sm font-medium text-white hover:bg-stone-700 disabled:opacity-50 transition-colors"
         >
-          {creating ? "Generating…" : "Generate invite code"}
+          {creating ? t.adminSettings.generating : t.adminSettings.generateCode}
         </button>
       </div>
 
@@ -104,13 +106,13 @@ export function InviteCodeManager({ companyId, codes: initial }: { companyId: st
                         onClick={() => copy(c.code)}
                         className="text-xs text-stone-700 hover:text-stone-900 font-medium"
                       >
-                        {copied === c.code ? "Copied!" : "Copy"}
+                        {copied === c.code ? t.adminSettings.copied : t.adminSettings.copyCode}
                       </button>
                       <button
                         onClick={() => remove(c.id)}
                         className="text-xs text-red-400 hover:text-red-600 transition-colors"
                       >
-                        Delete
+                        t.adminSettings.deleteCode
                       </button>
                     </div>
                   </td>

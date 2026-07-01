@@ -53,16 +53,30 @@ export async function DELETE(req: Request) {
 
   const { id } = await req.json();
 
-  const count = await db.location.count({ where: { companyId: membership.companyId } });
-  if (count <= 1) {
-    return NextResponse.json({ error: "Cannot delete the last location" }, { status: 400 });
-  }
-
   const location = await db.location.findUnique({ where: { id } });
   if (!location || location.companyId !== membership.companyId) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  await db.location.delete({ where: { id } });
+  try {
+    await db.$transaction(async (tx) => {
+      const count = await tx.location.count({ where: { companyId: membership.companyId } });
+      if (count <= 1) {
+        throw new Error("LAST_LOCATION");
+      }
+      await tx.location.delete({ where: { id } });
+    });
+  } catch (error) {
+    if (error instanceof Error && error.message === "LAST_LOCATION") {
+      return NextResponse.json({ error: "Cannot delete the last location" }, { status: 400 });
+    }
+    if (error instanceof Error && error.message.includes("Foreign key constraint failed")) {
+      return NextResponse.json(
+        { error: "Cannot delete location with existing time entries or schedule shifts" },
+        { status: 400 }
+      );
+    }
+    throw error;
+  }
   return NextResponse.json({ ok: true });
 }

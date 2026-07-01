@@ -11,11 +11,17 @@ export function ApproveRejectButtons({ entryId }: { entryId: string }) {
 
   async function update(status: "APPROVED" | "REJECTED") {
     setLoading(true);
-    await fetch(`/api/time-entries/${entryId}`, {
+    const res = await fetch(`/api/time-entries/${entryId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status }),
     });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      alert(data.error ?? t.adminTimeEntries.updateFailed ?? "Failed to update");
+      setLoading(false);
+      return;
+    }
     setLoading(false);
     router.refresh();
   }
