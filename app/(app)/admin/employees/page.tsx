@@ -23,7 +23,7 @@ export default async function EmployeesPage() {
   const t = getTranslations(locale);
 
   const members = await db.companyMember.findMany({
-    where: { companyId: membership.companyId },
+    where: { companyId: membership.companyId, isActive: true },
     include: { user: { select: { name: true, email: true, image: true, phone: true } } },
     orderBy: { createdAt: "asc" },
   });

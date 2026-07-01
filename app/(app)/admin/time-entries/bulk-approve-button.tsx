@@ -13,18 +13,16 @@ export function BulkApproveButton({ pendingIds }: { pendingIds: string[] }) {
 
   async function approveAll() {
     setLoading(true);
-    const results = await Promise.all(
-      pendingIds.map((id) =>
-        fetch(`/api/time-entries/${id}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ status: "APPROVED" }),
-        }).then((r) => ({ id, ok: r.ok }))
-      )
-    );
+    const res = await fetch("/api/time-entries/bulk", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ids: pendingIds, status: "APPROVED" }),
+    });
     setLoading(false);
-    const failed = results.filter((r) => !r.ok).length;
-    if (failed > 0) alert(t.adminTimeEntries.approveFailed(failed));
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      alert(data.error ?? t.adminTimeEntries.approveFailed(pendingIds.length));
+    }
     router.refresh();
   }
 

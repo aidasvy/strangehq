@@ -66,6 +66,7 @@ const en = {
     position: "Position",
     loading: "Loading…",
     noTimeEntries: "No time entries yet",
+    filter: "Filter",
     since: "since",
     statusLabel: (s: string): string => {
       const m: Record<string, string> = { PENDING: "Pending", APPROVED: "Approved", REJECTED: "Rejected" };
@@ -332,6 +333,7 @@ const lt: typeof en = {
     position: "Pareigos",
     loading: "Įkeliama…",
     noTimeEntries: "Dar nėra laiko įrašų",
+    filter: "Filtruoti",
     since: "nuo",
     statusLabel: (s: string): string => {
       const m: Record<string, string> = { PENDING: "Laukiama", APPROVED: "Patvirtinta", REJECTED: "Atmesta" };

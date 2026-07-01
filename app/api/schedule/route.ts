@@ -32,7 +32,7 @@ export async function POST(req: Request) {
   // Validate all shift userIds belong to this company
   if (shifts?.length > 0) {
     const validUserIds = new Set(
-      (await db.companyMember.findMany({ where: { companyId }, select: { userId: true } }))
+      (await db.companyMember.findMany({ where: { companyId, isActive: true }, select: { userId: true } }))
         .map((m) => m.userId)
     );
     const invalid = shifts.find((s: { userId: string }) => !validUserIds.has(s.userId));
@@ -41,9 +41,67 @@ export async function POST(req: Request) {
 
   await db.scheduleShift.deleteMany({ where: { scheduleId: schedule.id } });
 
+  const warnings: string[] = [];
+
   if (shifts?.length > 0) {
     const invalidTime = shifts.find((s: { startTime: string; endTime: string }) => s.startTime >= s.endTime);
     if (invalidTime) return NextResponse.json({ error: "Shift end time must be after start time" }, { status: 400 });
+
+    // Check for double-booking: same employee already scheduled at a different location on the same date this week
+    const shiftUserIds = [...new Set(shifts.map((s: { userId: string }) => s.userId))] as string[];
+    const shiftDates = [...new Set(shifts.map((s: { date: string }) => s.date))].map((d) => new Date(d as string));
+
+    const conflicts = await db.scheduleShift.findMany({
+      where: {
+        userId: { in: shiftUserIds },
+        date: { in: shiftDates },
+        schedule: { companyId, weekStart: weekStartDate, locationId: { not: locationId } },
+      },
+      include: { schedule: { select: { location: { select: { name: true } } } } },
+    });
+
+    if (conflicts.length > 0) {
+      const members = await db.companyMember.findMany({
+        where: { userId: { in: [...new Set(conflicts.map((c) => c.userId))] }, companyId },
+        include: { user: { select: { name: true } } },
+      });
+      const nameMap = new Map(members.map((m) => [m.userId, m.user.name ?? m.userId]));
+      const msgs = conflicts.map((c) =>
+        `${nameMap.get(c.userId)} already scheduled at ${c.schedule.location.name} on ${c.date.toISOString().slice(0, 10)}`
+      );
+      return NextResponse.json({ error: `Double-booking detected: ${msgs.slice(0, 2).join("; ")}${msgs.length > 2 ? ` (+${msgs.length - 2} more)` : ""}` }, { status: 400 });
+    }
+
+    // Calculate total weekly hours per employee (new shifts + existing shifts at other locations)
+    const shiftHours = (startTime: string, endTime: string) => {
+      const [sh, sm] = startTime.split(":").map(Number);
+      const [eh, em] = endTime.split(":").map(Number);
+      return (eh * 60 + em - (sh * 60 + sm)) / 60;
+    };
+
+    const weeklyHours = new Map<string, number>();
+    for (const s of shifts as { userId: string; startTime: string; endTime: string }[]) {
+      weeklyHours.set(s.userId, (weeklyHours.get(s.userId) ?? 0) + shiftHours(s.startTime, s.endTime));
+    }
+
+    const otherWeekShifts = await db.scheduleShift.findMany({
+      where: { userId: { in: shiftUserIds }, schedule: { companyId, weekStart: weekStartDate, locationId: { not: locationId } } },
+    });
+    for (const s of otherWeekShifts) {
+      weeklyHours.set(s.userId, (weeklyHours.get(s.userId) ?? 0) + shiftHours(s.startTime, s.endTime));
+    }
+
+    const overLimit = [...weeklyHours.entries()].filter(([, h]) => h > 40);
+    if (overLimit.length > 0) {
+      const overMembers = await db.companyMember.findMany({
+        where: { userId: { in: overLimit.map(([uid]) => uid) }, companyId },
+        include: { user: { select: { name: true } } },
+      });
+      const nameMap2 = new Map(overMembers.map((m) => [m.userId, m.user.name ?? m.userId]));
+      for (const [uid, h] of overLimit) {
+        warnings.push(`${nameMap2.get(uid)} scheduled for ${h.toFixed(1)}h this week (exceeds 40h limit)`);
+      }
+    }
 
     await db.scheduleShift.createMany({
       data: shifts.map((s: { userId: string; date: string; startTime: string; endTime: string }) => ({
@@ -56,5 +114,5 @@ export async function POST(req: Request) {
     });
   }
 
-  return NextResponse.json({ id: schedule.id, status: schedule.status });
+  return NextResponse.json({ id: schedule.id, status: schedule.status, warnings });
 }

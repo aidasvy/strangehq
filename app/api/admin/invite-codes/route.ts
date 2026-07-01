@@ -25,7 +25,9 @@ export async function POST(req: Request) {
   do {
     code = generateCode();
     attempts++;
-    if (attempts > 10) break;
+    if (attempts > 10) {
+      return NextResponse.json({ error: "Failed to generate unique invite code, please try again" }, { status: 500 });
+    }
   } while (await db.inviteCode.findUnique({ where: { code } }));
 
   const invite = await db.inviteCode.create({

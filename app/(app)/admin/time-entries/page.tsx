@@ -9,7 +9,11 @@ import { BulkApproveButton } from "./bulk-approve-button";
 import { cookies } from "next/headers";
 import { getTranslations, type Translations } from "@/lib/i18n/translations";
 
-export default async function TimeEntriesPage() {
+export default async function TimeEntriesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ from?: string; to?: string }>;
+}) {
   const session = await auth();
   if (!session?.user?.id) redirect("/sign-in");
 
@@ -21,15 +25,21 @@ export default async function TimeEntriesPage() {
   const locale = (await cookies()).get("locale")?.value ?? "lt";
   const t = getTranslations(locale);
 
+  const sp = await searchParams;
+  const defaultFrom = new Date();
+  defaultFrom.setDate(defaultFrom.getDate() - 30);
+  const fromDate = sp.from ? new Date(sp.from) : defaultFrom;
+  const toDate = sp.to ? new Date(sp.to + "T23:59:59") : new Date();
+
   const [entries, members] = await Promise.all([
     db.timeEntry.findMany({
-      where: { companyId: membership.companyId },
+      where: { companyId: membership.companyId, clockIn: { gte: fromDate, lte: toDate } },
       include: { user: { select: { name: true, email: true } } },
       orderBy: { clockIn: "desc" },
-      take: 100,
+      take: 200,
     }),
     db.companyMember.findMany({
-      where: { companyId: membership.companyId },
+      where: { companyId: membership.companyId, isActive: true },
       include: { user: { select: { name: true, email: true } } },
       orderBy: { createdAt: "asc" },
     }),
@@ -61,7 +71,7 @@ export default async function TimeEntriesPage() {
         <div className="flex items-center gap-2 flex-wrap">
           <BulkApproveButton pendingIds={pendingIds} />
           <a
-            href="/api/admin/export/time-entries"
+            href={`/api/admin/export/time-entries?from=${fromDate.toISOString().slice(0, 10)}&to=${toDate.toISOString().slice(0, 10)}`}
             download
             className="rounded-lg border border-stone-200 bg-white px-4 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50 shadow-sm transition-colors"
           >
@@ -70,6 +80,27 @@ export default async function TimeEntriesPage() {
           <ManualEntryForm companyId={membership.companyId} employees={employees} />
         </div>
       </div>
+
+      {/* Date range filter */}
+      <form method="GET" className="flex items-center gap-2 flex-wrap text-sm">
+        <label className="text-stone-500">{t.common.date}:</label>
+        <input
+          type="date"
+          name="from"
+          defaultValue={fromDate.toISOString().slice(0, 10)}
+          className="rounded border border-stone-300 px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-stone-400"
+        />
+        <span className="text-stone-400">–</span>
+        <input
+          type="date"
+          name="to"
+          defaultValue={toDate.toISOString().slice(0, 10)}
+          className="rounded border border-stone-300 px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-stone-400"
+        />
+        <button type="submit" className="rounded bg-stone-800 px-3 py-1 text-white text-sm hover:bg-stone-700 transition-colors">
+          {t.common.filter ?? "Filter"}
+        </button>
+      </form>
 
       {staleEntries.length > 0 && (
         <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">

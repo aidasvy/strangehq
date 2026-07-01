@@ -209,17 +209,15 @@ export function calculateHourBreakdown(
   }
 
   for (const entry of entries) {
-    const startMs = entry.clockIn.getTime();
+    // Process segment by segment between hour boundaries — same premium type within a whole hour,
+    // so this is equivalent to minute-by-minute but ~60x faster.
+    let t = entry.clockIn.getTime();
     const endMs = entry.clockOut.getTime();
-    const totalMinutes = Math.floor((endMs - startMs) / 60000);
-
-    for (let i = 0; i < totalMinutes; i++) {
-      accumulate(new Date(startMs + i * 60000), 1 / 60);
-    }
-
-    const remainingMs = (endMs - startMs) % 60000;
-    if (remainingMs > 0) {
-      accumulate(new Date(startMs + totalMinutes * 60000), remainingMs / 3600000);
+    while (t < endMs) {
+      const nextHour = (Math.floor(t / 3600000) + 1) * 3600000;
+      const segEnd = Math.min(nextHour, endMs);
+      accumulate(new Date(t), (segEnd - t) / 3600000);
+      t = segEnd;
     }
   }
 

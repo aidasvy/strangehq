@@ -125,12 +125,14 @@ model CompanyMember {
   position         String?
   annualLeaveDays     Int       @default(20)
   employmentStartDate DateTime? @db.Date
+  isActive         Boolean  @default(true)
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   @@unique([userId, companyId])
+  @@index([companyId, isActive])
 }
 
 enum Role {
@@ -165,6 +167,9 @@ model TimeEntry {
   location   Location?   @relation(fields: [locationId], references: [id])
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
+
+  @@index([userId, clockOut])
+  @@index([companyId, clockIn])
 }
 
 enum EntryStatus {
@@ -216,6 +221,7 @@ model Availability {
   updatedAt DateTime @updatedAt
 
   @@unique([userId, companyId, weekStart])
+  @@index([weekStart])
 }
 
 enum LeaveType {

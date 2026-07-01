@@ -8,6 +8,28 @@ export async function POST(req: Request) {
 
   const { companyId, weekStart, data } = await req.json();
 
+  // Validate data structure before persisting
+  if (!Array.isArray(data)) {
+    return NextResponse.json({ error: "Invalid availability data" }, { status: 400 });
+  }
+  for (const slot of data) {
+    if (!slot || typeof slot !== "object") {
+      return NextResponse.json({ error: "Invalid slot in availability data" }, { status: 400 });
+    }
+    if (!Number.isInteger(slot.day) || slot.day < 1 || slot.day > 7) {
+      return NextResponse.json({ error: "Each slot must have day between 1–7" }, { status: 400 });
+    }
+    if (typeof slot.startTime !== "string" || !/^\d{2}:\d{2}$/.test(slot.startTime)) {
+      return NextResponse.json({ error: "Invalid startTime format (expected HH:MM)" }, { status: 400 });
+    }
+    if (typeof slot.endTime !== "string" || !/^\d{2}:\d{2}$/.test(slot.endTime)) {
+      return NextResponse.json({ error: "Invalid endTime format (expected HH:MM)" }, { status: 400 });
+    }
+    if (slot.startTime >= slot.endTime) {
+      return NextResponse.json({ error: "startTime must be before endTime" }, { status: 400 });
+    }
+  }
+
   const membership = await db.companyMember.findUnique({
     where: { userId_companyId: { userId: session.user.id, companyId } },
   });

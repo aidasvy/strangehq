@@ -30,12 +30,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid clockIn date" }, { status: 400 });
   }
 
-  // Block duplicate open entry for anyone (not just self clock-in)
-  if (!clockOut) {
-    const open = await db.timeEntry.findFirst({ where: { userId, clockOut: null } });
-    if (open) return NextResponse.json({ error: "Already clocked in" }, { status: 400 });
-  }
-
   const clockOutDate = clockOut ? new Date(clockOut) : undefined;
   if (clockOutDate && isNaN(clockOutDate.getTime())) {
     return NextResponse.json({ error: "Invalid clockOut date" }, { status: 400 });
@@ -52,15 +46,28 @@ export async function POST(req: Request) {
     }
   }
 
-  const entry = await db.timeEntry.create({
-    data: {
-      userId,
-      companyId,
-      locationId: locationId ?? null,
-      clockIn: clockInDate,
-      clockOut: clockOutDate ?? null,
-    },
-  });
+  let entry;
+  if (!clockOut) {
+    // Atomic check-and-create to prevent duplicate open entries from race conditions
+    try {
+      entry = await db.$transaction(async (tx) => {
+        const open = await tx.timeEntry.findFirst({ where: { userId, clockOut: null } });
+        if (open) throw new Error("ALREADY_CLOCKED_IN");
+        return tx.timeEntry.create({
+          data: { userId, companyId, locationId: locationId ?? null, clockIn: clockInDate, clockOut: null },
+        });
+      }, { isolationLevel: "Serializable" });
+    } catch (err) {
+      if (err instanceof Error && err.message === "ALREADY_CLOCKED_IN") {
+        return NextResponse.json({ error: "Already clocked in" }, { status: 400 });
+      }
+      throw err;
+    }
+  } else {
+    entry = await db.timeEntry.create({
+      data: { userId, companyId, locationId: locationId ?? null, clockIn: clockInDate, clockOut: clockOutDate ?? null },
+    });
+  }
 
   return NextResponse.json(entry, { status: 201 });
 }

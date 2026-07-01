@@ -48,6 +48,9 @@ export async function GET(req: Request, { params }: { params: Promise<{ type: st
   }
 
   if (type === "time-entries") {
+    if (membership.role !== "ADMIN") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
     const from = url.searchParams.get("from");
     const to = url.searchParams.get("to");
     const clockInFilter: { gte?: Date; lte?: Date } = {};

@@ -51,6 +51,6 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
     return NextResponse.json({ error: "Cannot remove yourself" }, { status: 400 });
   }
 
-  await db.companyMember.delete({ where: { id } });
+  await db.companyMember.update({ where: { id }, data: { isActive: false } });
   return NextResponse.json({ ok: true });
 }

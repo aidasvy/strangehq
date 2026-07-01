@@ -35,8 +35,14 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       }),
     ]);
 
+    if (!employee?.employmentStartDate) {
+      return NextResponse.json(
+        { error: "Cannot approve paid leave: employee's start date has not been set. Update it in the Employees page first." },
+        { status: 400 }
+      );
+    }
     const annualLeaveDays = employee?.annualLeaveDays ?? 20;
-    const employmentStartDate = employee?.employmentStartDate ?? null;
+    const employmentStartDate = employee.employmentStartDate;
     const approved = otherRequests.filter((r) => r.status === "APPROVED").map((r) => ({ startDate: r.startDate, endDate: r.endDate, type: r.type }));
     const pending = otherRequests.filter((r) => r.status === "PENDING").map((r) => ({ startDate: r.startDate, endDate: r.endDate, type: r.type }));
     const balance = computeLeaveBalance(annualLeaveDays, employmentStartDate, approved, pending, year);
