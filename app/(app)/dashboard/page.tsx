@@ -247,7 +247,8 @@ function ChecklistIcon() {
 function PlaneIcon() {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M17.8 19.2 16 11l3.5-3.5C21 6 21 4 19 4s-2 1-3.5 2.5L8 11 .8 9.2C0 9 0 8.5.5 8l1-1C2 6 3 5.9 4 6.2L6.9 7 9 5H7L6 4h4l1 1 2-2h2l-1 3 3-1h1l-1 4-2 1z" />
+      <circle cx="12" cy="12" r="3.75" />
+      <path d="M12 3v2.25M12 18.75V21M5.636 5.636l1.591 1.591M16.773 16.773l1.591 1.591M3 12h2.25M18.75 12H21M5.636 18.364l1.591-1.591M16.773 7.227l1.591-1.591" />
     </svg>
   );
 }
