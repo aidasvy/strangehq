@@ -21,7 +21,7 @@ export default async function DashboardPage() {
   const todayEnd = new Date(now);
   todayEnd.setHours(23, 59, 59, 999);
 
-  const [membership, openEntry, todayShifts, upcomingShifts, pendingHolidays, pendingEntries, weekEntries] =
+  const [membership, openEntry, todayShifts, upcomingShifts, pendingHolidays, pendingEntries, weekEntries, pendingSwaps] =
     await Promise.all([
       db.companyMember.findFirst({ where: { userId }, include: { company: true } }),
       db.timeEntry.findFirst({ where: { userId, clockOut: null } }),
@@ -39,6 +39,11 @@ export default async function DashboardPage() {
       db.timeEntry.findMany({
         where: { userId, status: "APPROVED", clockIn: { gte: weekStart }, clockOut: { not: null } },
       }),
+      db.shiftSwapRequest.findMany({
+        where: { targetUserId: userId, status: "PENDING_TARGET" },
+        select: { targetShift: { select: { date: true } } },
+        orderBy: { createdAt: "asc" },
+      }),
     ]);
 
   if (!membership) redirect("/onboarding");
@@ -55,6 +60,21 @@ export default async function DashboardPage() {
   const estimatedGross = hourlyRate ? weekHours * hourlyRate : null;
 
   const todayShift = todayShifts[0] ?? null;
+
+  function mondayOf(d: Date): Date {
+    const day = d.getDay();
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+    const monday = new Date(d);
+    monday.setDate(diff);
+    monday.setHours(0, 0, 0, 0);
+    return monday;
+  }
+  const firstPendingSwapWeek = pendingSwaps[0]
+    ? mondayOf(new Date(pendingSwaps[0].targetShift.date))
+    : null;
+  const swapHref = firstPendingSwapWeek
+    ? `/dashboard/schedule?week=${firstPendingSwapWeek.toISOString().slice(0, 10)}`
+    : "/dashboard/schedule";
 
   return (
     <div className="p-5 space-y-5 max-w-2xl">
@@ -112,6 +132,20 @@ export default async function DashboardPage() {
       )}
 
       {/* Alerts */}
+      {pendingSwaps.length > 0 && (
+        <Link
+          href={swapHref}
+          className="flex items-center gap-3 rounded-lg border border-purple-200 bg-purple-50 px-4 py-3 hover:bg-purple-100 transition-colors"
+        >
+          <svg className="w-4 h-4 shrink-0 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M16 3l4 4-4 4M20 7H8a4 4 0 00-4 4v1m4 9l-4-4 4-4M4 17h12a4 4 0 004-4v-1" />
+          </svg>
+          <p className="text-sm text-purple-800">
+            {pendingSwaps.length} shift swap request{pendingSwaps.length !== 1 ? "s" : ""} waiting for your response
+          </p>
+          <span className="ml-auto text-xs text-purple-600">{t.dash.view}</span>
+        </Link>
+      )}
       {pendingEntries > 0 && (
         <Link
           href="/dashboard/hours"
