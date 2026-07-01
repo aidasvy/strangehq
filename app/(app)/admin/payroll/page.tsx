@@ -52,6 +52,7 @@ export default async function PayrollPage({
         nightPremium: Number(dbConfig.nightPremium),
         sundayPremium: Number(dbConfig.sundayPremium),
         holidayPremium: Number(dbConfig.holidayPremium),
+        overtimePremium: Number(dbConfig.overtimePremium),
       }
     : DEFAULT_PAYROLL_CONFIG;
 

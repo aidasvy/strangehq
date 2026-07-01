@@ -23,6 +23,8 @@ model User {
   availability  Availability[]
   holidayRequests HolidayRequest[]
   scheduleShifts  ScheduleShift[]
+  swapRequestsAsRequester ShiftSwapRequest[] @relation("SwapRequester")
+  swapRequestsAsTarget    ShiftSwapRequest[] @relation("SwapTarget")
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
 }
@@ -74,6 +76,7 @@ model Company {
   schedules       Schedule[]
   inviteCodes     InviteCode[]
   holidayRequests HolidayRequest[]
+  shiftSwapRequests ShiftSwapRequest[]
   payrollConfig   PayrollConfig?
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
@@ -207,6 +210,8 @@ model ScheduleShift {
   endTime    String
   schedule   Schedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  swapRequestsAsRequester ShiftSwapRequest[] @relation("RequesterShift")
+  swapRequestsAsTarget    ShiftSwapRequest[] @relation("TargetShift")
   createdAt  DateTime @default(now())
 }
 
@@ -250,6 +255,35 @@ enum RequestStatus {
   REJECTED
 }
 
+enum SwapStatus {
+  PENDING_TARGET
+  PENDING_ADMIN
+  APPROVED
+  REJECTED
+}
+
+model ShiftSwapRequest {
+  id               String     @id @default(cuid())
+  companyId        String
+  requesterId      String
+  requesterShiftId String
+  targetUserId     String
+  targetShiftId    String
+  status           SwapStatus @default(PENDING_TARGET)
+  note             String?
+  company          Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  requester        User          @relation("SwapRequester", fields: [requesterId], references: [id], onDelete: Cascade)
+  requesterShift   ScheduleShift @relation("RequesterShift", fields: [requesterShiftId], references: [id], onDelete: Cascade)
+  targetUser       User          @relation("SwapTarget", fields: [targetUserId], references: [id], onDelete: Cascade)
+  targetShift      ScheduleShift @relation("TargetShift", fields: [targetShiftId], references: [id], onDelete: Cascade)
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+
+  @@index([companyId, status])
+  @@index([requesterId])
+  @@index([targetUserId])
+}
+
 model PayrollConfig {
   id                 String   @id @default(cuid())
   companyId          String   @unique
@@ -264,6 +298,7 @@ model PayrollConfig {
   nightPremium       Decimal  @default(0.50)   @db.Decimal(6, 4)
   sundayPremium      Decimal  @default(1.00)   @db.Decimal(6, 4)
   holidayPremium     Decimal  @default(1.00)   @db.Decimal(6, 4)
+  overtimePremium    Decimal  @default(0.50)   @db.Decimal(6, 4)
   company            Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
   updatedAt          DateTime @updatedAt
 }

@@ -268,6 +268,7 @@ export default async function AdminSchedulePage({
 
       {activeView === "builder" ? (
         <ScheduleBuilder
+          key={`${activeLocationId}-${weekStart.toISOString()}`}
           companyId={companyId}
           locationId={activeLocationId}
           locationName={locations.find((l) => l.id === activeLocationId)?.name ?? ""}

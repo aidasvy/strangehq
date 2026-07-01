@@ -124,6 +124,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ type: st
           nightPremium: Number(dbConfig.nightPremium),
           sundayPremium: Number(dbConfig.sundayPremium),
           holidayPremium: Number(dbConfig.holidayPremium),
+          overtimePremium: Number(dbConfig.overtimePremium),
         }
       : DEFAULT_PAYROLL_CONFIG;
 
@@ -135,7 +136,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ type: st
     });
 
     const rows = [
-      ["Employee", "Email", "Total hours", "Night hours", "Sunday hours", "Holiday hours", "Gross (€)", "Sodra employee (€)", "NPD (€)", "Taxable (€)", "GPM (€)", "Net (€)", "Employer cost (€)"],
+      ["Employee", "Email", "Total hours", "Overtime hours", "Night hours", "Sunday hours", "Holiday hours", "Gross (€)", "Sodra employee (€)", "NPD (€)", "Taxable (€)", "GPM (€)", "Net (€)", "Employer cost (€)"],
       ...members.map((m) => {
         const rate = m.hourlyRate ? Number(m.hourlyRate) : 0;
         const memberEntries = entriesByUser[m.userId] ?? [];
@@ -144,7 +145,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ type: st
         );
 
         if (rate === 0 || totalHours === 0) {
-          return [m.user.name ?? "", m.user.email ?? "", totalHours.toFixed(2), "0.00", "0.00", "0.00", "0.00", "0.00", "0.00", "0.00", "0.00", "0.00", "0.00"];
+          return [m.user.name ?? "", m.user.email ?? "", totalHours.toFixed(2), "0.00", "0.00", "0.00", "0.00", "0.00", "0.00", "0.00", "0.00", "0.00", "0.00", "0.00"];
         }
 
         const bd = calculateHourBreakdown(memberEntries, rate, config);
@@ -154,6 +155,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ type: st
           m.user.name ?? "",
           m.user.email ?? "",
           totalHours.toFixed(2),
+          bd.overtimeHours.toFixed(2),
           bd.nightHours.toFixed(2),
           bd.sundayHours.toFixed(2),
           bd.holidayHours.toFixed(2),

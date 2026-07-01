@@ -5,6 +5,7 @@ import { calculatePayroll, formatEur, type PayrollConfig } from "@/lib/payroll";
 
 interface HourBreakdown {
   regularHours: number;
+  overtimeHours: number;
   nightHours: number;
   sundayHours: number;
   holidayHours: number;
@@ -28,9 +29,9 @@ interface Props {
   monthLabel: string;
 }
 
-function PremiumBadge({ label, hours }: { label: string; hours: number }) {
+function PremiumBadge({ label, hours, highlight }: { label: string; hours: number; highlight?: boolean }) {
   return (
-    <span className="inline-flex items-center rounded-full bg-stone-100 px-1.5 py-0.5 text-xs text-stone-700 border border-stone-200">
+    <span className={`inline-flex items-center rounded-full px-1.5 py-0.5 text-xs border ${highlight ? "bg-amber-50 text-amber-700 border-amber-200" : "bg-stone-100 text-stone-700 border-stone-200"}`}>
       {hours.toFixed(1)}h {label}
     </span>
   );
@@ -98,7 +99,7 @@ export function PayrollSummary({ summaryData, config, year, month, monthLabel }:
           <tbody className="divide-y divide-stone-100">
             {rowsWithPayroll.map((r) => {
               const bd = r.breakdown;
-              const hasPremiums = bd && (bd.nightHours > 0.01 || bd.sundayHours > 0.01 || bd.holidayHours > 0.01);
+              const hasPremiums = bd && (bd.overtimeHours > 0.01 || bd.nightHours > 0.01 || bd.sundayHours > 0.01 || bd.holidayHours > 0.01);
               return (
                 <tr key={r.memberId} className="hover:bg-stone-50 transition-colors">
                   <td className="px-4 py-3 font-medium">{r.name ?? "—"}</td>
@@ -106,6 +107,7 @@ export function PayrollSummary({ summaryData, config, year, month, monthLabel }:
                   <td className="px-4 py-3">
                     {hasPremiums ? (
                       <div className="flex flex-wrap gap-1">
+                        {bd!.overtimeHours > 0.01 && <PremiumBadge label="OT" hours={bd!.overtimeHours} highlight />}
                         {bd!.nightHours > 0.01 && <PremiumBadge label="night" hours={bd!.nightHours} />}
                         {bd!.sundayHours > 0.01 && <PremiumBadge label="Sun" hours={bd!.sundayHours} />}
                         {bd!.holidayHours > 0.01 && <PremiumBadge label="holiday" hours={bd!.holidayHours} />}
@@ -177,7 +179,7 @@ export function PayrollSummary({ summaryData, config, year, month, monthLabel }:
       </div>
 
       <p className="text-xs text-stone-400">
-        Night (22:00–06:00) +{Math.round(config.nightPremium * 100)}% · Sunday +{Math.round(config.sundayPremium * 100)}% · Public holiday +{Math.round(config.holidayPremium * 100)}%. Premiums stack.
+        Overtime (&gt;40h/week) +{Math.round(config.overtimePremium * 100)}% · Night (22:00–06:00) +{Math.round(config.nightPremium * 100)}% · Sunday +{Math.round(config.sundayPremium * 100)}% · Public holiday +{Math.round(config.holidayPremium * 100)}%. Premiums stack.
       </p>
     </div>
   );

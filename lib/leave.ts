@@ -47,14 +47,21 @@ export function countWorkingDays(start: Date, end: Date): number {
   return count;
 }
 
-/** Prorated entitlement for a given year based on employment start date. */
+/** Prorated entitlement for a given year based on employment start date.
+ *  Per LR Darbo kodeksas art. 127(4): accrual is per full calendar month worked.
+ *  A month only counts if the employee started on the 1st of that month.
+ */
 export function computeEntitlement(annualLeaveDays: number, employmentStartDate: Date | null, year: number): number {
   if (!employmentStartDate) return annualLeaveDays;
   const empYear = employmentStartDate.getUTCFullYear();
   if (year < empYear) return 0;
   if (year > empYear) return annualLeaveDays;
-  // First year: prorate by months worked (inclusive of start month)
-  const monthsWorked = 12 - employmentStartDate.getUTCMonth();
+  // First year: count only full calendar months worked (start on day 1 = that month counts)
+  const startDay = employmentStartDate.getUTCDate();
+  const startMonthIndex = employmentStartDate.getUTCMonth(); // 0 = Jan
+  const firstFullMonth = startDay === 1 ? startMonthIndex : startMonthIndex + 1;
+  const monthsWorked = 12 - firstFullMonth; // months from firstFullMonth through December
+  if (monthsWorked <= 0) return 0;
   return Math.round((monthsWorked / 12) * annualLeaveDays);
 }
 

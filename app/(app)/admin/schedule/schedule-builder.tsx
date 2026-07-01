@@ -268,7 +268,7 @@ export function ScheduleBuilder({
 
       const weekH = weekHoursByEmployee[emp.id] ?? 0;
       if (weekH > 40) {
-        result.push({ employeeName: name, message: `${weekH.toFixed(1)}h this week (over 40h)`, severity: "error" });
+        result.push({ employeeName: name, message: `${weekH.toFixed(1)}h this week (over 40h — overtime rates apply)`, severity: "warn" });
       }
     });
     return result;

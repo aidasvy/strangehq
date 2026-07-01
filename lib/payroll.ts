@@ -10,6 +10,7 @@ export interface PayrollConfig {
   nightPremium: number;
   sundayPremium: number;
   holidayPremium: number;
+  overtimePremium: number;
 }
 
 export const DEFAULT_PAYROLL_CONFIG: PayrollConfig = {
@@ -24,6 +25,9 @@ export const DEFAULT_PAYROLL_CONFIG: PayrollConfig = {
   nightPremium: 0.5,
   sundayPremium: 1.0,
   holidayPremium: 1.0,
+  // DK art. 144: overtime minimum 1.5× (i.e. +0.5 on top of base)
+  // Can be raised to 2× by employment contract or collective agreement
+  overtimePremium: 0.5,
 };
 
 export interface PayrollResult {
@@ -85,6 +89,7 @@ export function formatEur(amount: number): string {
 
 export interface HourBreakdown {
   regularHours: number;
+  overtimeHours: number;
   nightHours: number;
   sundayHours: number;
   holidayHours: number;
@@ -152,7 +157,7 @@ const _weekdayFmt = new Intl.DateTimeFormat("en-US", {
 
 function localHour(date: Date): number {
   const h = parseInt(_hourFmt.format(date), 10);
-  return h === 24 ? 0 : h; // some environments return "24" for midnight
+  return h === 24 ? 0 : h;
 }
 
 function localDateKey(date: Date): string {
@@ -163,17 +168,39 @@ function isLocalSunday(date: Date): boolean {
   return _weekdayFmt.format(date) === "Sun";
 }
 
+/** Returns the ISO Monday date string (YYYY-MM-DD) for the week containing `date` (Vilnius time). */
+function getWeekKey(date: Date): string {
+  const dateKey = localDateKey(date);
+  const [y, m, d] = dateKey.split("-").map(Number);
+  const local = new Date(Date.UTC(y, m - 1, d));
+  const dow = local.getUTCDay() || 7; // 1=Mon … 7=Sun
+  local.setUTCDate(local.getUTCDate() - (dow - 1));
+  return local.toISOString().slice(0, 10);
+}
+
 /**
  * Splits time entries into premium hour buckets and returns weighted gross.
- * Premiums stack: a Sunday night hour gets both nightPremium and sundayPremium.
- * Night hours that fall on a Sunday are counted in sundayHours, not nightHours.
+ *
+ * Overtime (DK art. 144): hours beyond 40 in a calendar week (Mon–Sun) earn
+ * an additional overtimePremium on top of any other applicable premium.
+ *
+ * Other premiums stack additively: a Sunday night overtime hour earns
+ * base + nightPremium + sundayPremium + overtimePremium.
+ *
+ * overtimeHours counts all hours beyond 40/week regardless of their type.
+ * nightHours / sundayHours / holidayHours count ALL hours of that type
+ * (some may also be overtime hours).
  */
 export function calculateHourBreakdown(
   entries: Array<{ clockIn: Date; clockOut: Date }>,
   hourlyRate: number,
   config: PayrollConfig
 ): HourBreakdown {
+  // Sort chronologically so weekly running totals accumulate correctly
+  const sorted = [...entries].sort((a, b) => a.clockIn.getTime() - b.clockIn.getTime());
+
   const holidayCache = new Map<number, Set<string>>();
+  const weeklyHours = new Map<string, number>(); // weekKey → hours worked so far that week
 
   function holidays(year: number): Set<string> {
     if (!holidayCache.has(year)) holidayCache.set(year, getLithuanianHolidays(year));
@@ -181,6 +208,7 @@ export function calculateHourBreakdown(
   }
 
   let regularHours = 0;
+  let overtimeHours = 0;
   let nightHours = 0;
   let sundayHours = 0;
   let holidayHours = 0;
@@ -195,22 +223,42 @@ export function calculateHourBreakdown(
     const isHoliday = holidays(year).has(dateKey);
     const isSunday = !isHoliday && isLocalSunday(t);
 
-    let multiplier = 1.0;
-    if (isNight) multiplier += config.nightPremium;
-    if (isHoliday) multiplier += config.holidayPremium;
-    else if (isSunday) multiplier += config.sundayPremium;
+    // Type-based premium (excluding overtime)
+    let typeMultiplier = 1.0;
+    if (isNight) typeMultiplier += config.nightPremium;
+    if (isHoliday) typeMultiplier += config.holidayPremium;
+    else if (isSunday) typeMultiplier += config.sundayPremium;
 
+    // Hour-type buckets (all hours of this type, whether overtime or not)
     if (isHoliday) holidayHours += durationHours;
     else if (isSunday) sundayHours += durationHours;
     else if (isNight) nightHours += durationHours;
     else regularHours += durationHours;
 
-    effectiveGross += hourlyRate * durationHours * multiplier;
+    // Split between regular-rate and overtime-rate portions
+    const weekKey = getWeekKey(t);
+    const soFar = weeklyHours.get(weekKey) ?? 0;
+    weeklyHours.set(weekKey, soFar + durationHours);
+
+    let regularDur: number;
+    let otDur: number;
+    if (soFar >= 40) {
+      regularDur = 0;
+      otDur = durationHours;
+    } else if (soFar + durationHours > 40) {
+      regularDur = 40 - soFar;
+      otDur = durationHours - regularDur;
+    } else {
+      regularDur = durationHours;
+      otDur = 0;
+    }
+
+    overtimeHours += otDur;
+    effectiveGross += hourlyRate * regularDur * typeMultiplier;
+    effectiveGross += hourlyRate * otDur * (typeMultiplier + config.overtimePremium);
   }
 
-  for (const entry of entries) {
-    // Process segment by segment between hour boundaries — same premium type within a whole hour,
-    // so this is equivalent to minute-by-minute but ~60x faster.
+  for (const entry of sorted) {
     let t = entry.clockIn.getTime();
     const endMs = entry.clockOut.getTime();
     while (t < endMs) {
@@ -221,5 +269,5 @@ export function calculateHourBreakdown(
     }
   }
 
-  return { regularHours, nightHours, sundayHours, holidayHours, effectiveGross };
+  return { regularHours, overtimeHours, nightHours, sundayHours, holidayHours, effectiveGross };
 }
