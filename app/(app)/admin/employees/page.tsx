@@ -5,6 +5,7 @@ import { EmployeeRateEditor } from "./employee-rate-editor";
 import { EmployeeRoleEditor } from "./employee-role-editor";
 import { EmployeeLeaveDaysEditor } from "./employee-leave-days-editor";
 import { EmployeeStartDateEditor } from "./employee-start-date-editor";
+import { EmployeePositionEditor } from "./employee-position-editor";
 import { RemoveMemberButton } from "./remove-member-button";
 import Link from "next/link";
 import { cookies } from "next/headers";
@@ -74,7 +75,9 @@ export default async function EmployeesPage() {
                     isSelf={m.userId === membership.userId}
                   />
                 </td>
-                <td className="px-4 py-3 text-stone-500">{m.position ?? "—"}</td>
+                <td className="px-4 py-3">
+                  <EmployeePositionEditor memberId={m.id} currentPosition={m.position ?? null} />
+                </td>
                 <td className="px-4 py-3">
                   <EmployeeRateEditor memberId={m.id} currentRate={m.hourlyRate?.toString() ?? ""} />
                 </td>
