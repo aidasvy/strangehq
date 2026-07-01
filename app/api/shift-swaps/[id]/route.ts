@@ -7,7 +7,7 @@ import {
 } from "@/lib/email";
 import { NextResponse } from "next/server";
 
-const APP_URL = process.env.NEXTAUTH_URL ?? process.env.APP_URL ?? "https://shiftsync.app";
+const APP_URL = process.env.NEXTAUTH_URL ?? process.env.APP_URL ?? "https://strangehq.app";
 
 function toShiftRow(shift: { date: Date; startTime: string; endTime: string }, locationName: string): ShiftRow {
   return { date: shift.date, startTime: shift.startTime, endTime: shift.endTime, locationName };

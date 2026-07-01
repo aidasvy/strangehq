@@ -53,44 +53,87 @@ export default async function HoursPage() {
         {recentEntries.length === 0 ? (
           <p className="p-4 text-sm text-stone-400">{t.common.noTimeEntries}</p>
         ) : (
-          <table className="w-full text-sm">
-            <thead className="bg-stone-50">
-              <tr>
-                <th className="px-4 py-2 text-left font-medium text-stone-500">{t.common.date}</th>
-                <th className="px-4 py-2 text-left font-medium text-stone-500">{t.common.clockIn}</th>
-                <th className="px-4 py-2 text-left font-medium text-stone-500">{t.common.clockOut}</th>
-                <th className="px-4 py-2 text-left font-medium text-stone-500">{t.common.hours}</th>
-                <th className="px-4 py-2 text-left font-medium text-stone-500">{t.common.status}</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-stone-100">
+          <>
+            {/* Mobile card view */}
+            <div className="sm:hidden divide-y divide-stone-100">
               {recentEntries.map((entry) => {
                 const hours = entry.clockOut
                   ? ((entry.clockOut.getTime() - entry.clockIn.getTime()) / 3600000).toFixed(2)
                   : "—";
                 return (
-                  <tr key={entry.id} className="hover:bg-stone-50 transition-colors align-top">
-                    <td className="px-4 py-3 font-mono text-stone-600">
-                      {entry.clockIn.toLocaleDateString(t.dateLocale, { day: "2-digit", month: "short", year: "numeric" })}
-                    </td>
-                    <td className="px-4 py-3 font-mono text-stone-700">{fmt(entry.clockIn, t.dateLocale)}</td>
-                    <td className="px-4 py-3 font-mono">{entry.clockOut ? fmt(entry.clockOut, t.dateLocale) : <span className="text-green-600 font-medium">{t.common.active}</span>}</td>
-                    <td className="px-4 py-3 font-mono text-stone-700">{hours}</td>
-                    <td className="px-4 py-3">
+                  <div key={entry.id} className="p-4 space-y-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="font-mono text-sm text-stone-700">
+                        {entry.clockIn.toLocaleDateString(t.dateLocale, { day: "2-digit", month: "short", year: "numeric" })}
+                      </p>
                       <StatusBadge status={entry.status} t={t} />
-                      {entry.status === "REJECTED" && entry.clockOut && (
-                        <RejectedEntryEditor
-                          entryId={entry.id}
-                          clockIn={entry.clockIn.toISOString()}
-                          clockOut={entry.clockOut.toISOString()}
-                        />
-                      )}
-                    </td>
-                  </tr>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 text-xs">
+                      <div>
+                        <p className="text-stone-400">{t.common.clockIn}</p>
+                        <p className="font-mono text-stone-700">{fmt(entry.clockIn, t.dateLocale)}</p>
+                      </div>
+                      <div>
+                        <p className="text-stone-400">{t.common.clockOut}</p>
+                        <p className="font-mono">{entry.clockOut ? fmt(entry.clockOut, t.dateLocale) : <span className="text-green-600 font-medium">{t.common.active}</span>}</p>
+                      </div>
+                      <div>
+                        <p className="text-stone-400">{t.common.hours}</p>
+                        <p className="font-mono text-stone-700">{hours}</p>
+                      </div>
+                    </div>
+                    {entry.status === "REJECTED" && entry.clockOut && (
+                      <RejectedEntryEditor
+                        entryId={entry.id}
+                        clockIn={entry.clockIn.toISOString()}
+                        clockOut={entry.clockOut.toISOString()}
+                      />
+                    )}
+                  </div>
                 );
               })}
-            </tbody>
-          </table>
+            </div>
+
+            {/* Desktop table */}
+            <table className="hidden sm:table w-full text-sm">
+              <thead className="bg-stone-50">
+                <tr>
+                  <th className="px-4 py-2 text-left font-medium text-stone-500">{t.common.date}</th>
+                  <th className="px-4 py-2 text-left font-medium text-stone-500">{t.common.clockIn}</th>
+                  <th className="px-4 py-2 text-left font-medium text-stone-500">{t.common.clockOut}</th>
+                  <th className="px-4 py-2 text-left font-medium text-stone-500">{t.common.hours}</th>
+                  <th className="px-4 py-2 text-left font-medium text-stone-500">{t.common.status}</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-stone-100">
+                {recentEntries.map((entry) => {
+                  const hours = entry.clockOut
+                    ? ((entry.clockOut.getTime() - entry.clockIn.getTime()) / 3600000).toFixed(2)
+                    : "—";
+                  return (
+                    <tr key={entry.id} className="hover:bg-stone-50 transition-colors align-top">
+                      <td className="px-4 py-3 font-mono text-stone-600">
+                        {entry.clockIn.toLocaleDateString(t.dateLocale, { day: "2-digit", month: "short", year: "numeric" })}
+                      </td>
+                      <td className="px-4 py-3 font-mono text-stone-700">{fmt(entry.clockIn, t.dateLocale)}</td>
+                      <td className="px-4 py-3 font-mono">{entry.clockOut ? fmt(entry.clockOut, t.dateLocale) : <span className="text-green-600 font-medium">{t.common.active}</span>}</td>
+                      <td className="px-4 py-3 font-mono text-stone-700">{hours}</td>
+                      <td className="px-4 py-3">
+                        <StatusBadge status={entry.status} t={t} />
+                        {entry.status === "REJECTED" && entry.clockOut && (
+                          <RejectedEntryEditor
+                            entryId={entry.id}
+                            clockIn={entry.clockIn.toISOString()}
+                            clockOut={entry.clockOut.toISOString()}
+                          />
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </>
         )}
       </div>
     </div>

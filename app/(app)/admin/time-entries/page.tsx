@@ -133,59 +133,114 @@ export default async function TimeEntriesPage({
         </div>
       )}
 
-      <div className="rounded-lg border border-stone-200 bg-white shadow-sm overflow-hidden">
-        {entries.length === 0 ? (
+      {entries.length === 0 ? (
+        <div className="rounded-lg border border-stone-200 bg-white shadow-sm overflow-hidden">
           <p className="p-4 text-sm text-stone-400">{t.common.noTimeEntries}</p>
-        ) : (
-          <table className="w-full text-sm">
-            <thead className="bg-stone-50">
-              <tr>
-                <th className="px-4 py-2 text-left font-medium text-stone-500">{t.common.employee}</th>
-                <th className="px-4 py-2 text-left font-medium text-stone-500">{t.common.date}</th>
-                <th className="px-4 py-2 text-left font-medium text-stone-500">{t.common.clockIn}</th>
-                <th className="px-4 py-2 text-left font-medium text-stone-500">{t.common.clockOut}</th>
-                <th className="px-4 py-2 text-left font-medium text-stone-500">{t.common.hours}</th>
-                <th className="px-4 py-2 text-left font-medium text-stone-500">{t.common.status}</th>
-                <th className="px-4 py-2 text-left font-medium text-stone-500">{t.common.actions}</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-stone-100">
-              {entries.map((e) => {
-                const hours = e.clockOut
-                  ? ((e.clockOut.getTime() - e.clockIn.getTime()) / 3600000).toFixed(2)
-                  : "—";
-                return (
-                  <tr key={e.id} className="hover:bg-stone-50 transition-colors align-top">
-                    <td className="px-4 py-3">
-                      <p className="font-medium text-stone-900">{e.user.name ?? "—"}</p>
-                      <p className="text-xs text-stone-400">{e.user.email}</p>
-                    </td>
-                    <td className="px-4 py-3 font-mono text-stone-600">
-                      {e.clockIn.toLocaleDateString(t.dateLocale)}
-                    </td>
-                    <td className="px-4 py-3 font-mono text-stone-700">{fmt(e.clockIn, t.dateLocale)}</td>
-                    <td className="px-4 py-3 font-mono">{e.clockOut ? fmt(e.clockOut, t.dateLocale) : <span className="text-green-600">{t.common.active}</span>}</td>
-                    <td className="px-4 py-3 font-mono text-stone-700">{hours}</td>
-                    <td className="px-4 py-3">
+        </div>
+      ) : (
+        <>
+          {/* Mobile card view */}
+          <div className="sm:hidden space-y-3">
+            {entries.map((e) => {
+              const hours = e.clockOut
+                ? ((e.clockOut.getTime() - e.clockIn.getTime()) / 3600000).toFixed(2)
+                : "—";
+              return (
+                <div key={e.id} className="rounded-lg border border-stone-200 bg-white shadow-sm p-4 space-y-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="font-medium text-stone-900 break-words">{e.user.name ?? "—"}</p>
+                      <p className="text-xs text-stone-400 break-words">{e.user.email}</p>
+                    </div>
+                    <div className="shrink-0">
                       <StatusBadge status={e.status} t={t} />
-                    </td>
-                    <td className="px-4 py-3 space-y-2">
-                      {e.status === "PENDING" && e.clockOut && (
-                        <ApproveRejectButtons entryId={e.id} />
-                      )}
-                      <TimeEntryEditor
-                        entryId={e.id}
-                        clockIn={e.clockIn.toISOString()}
-                        clockOut={e.clockOut?.toISOString() ?? null}
-                      />
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        )}
-      </div>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div>
+                      <p className="text-stone-400">{t.common.date}</p>
+                      <p className="font-mono text-stone-700">{e.clockIn.toLocaleDateString(t.dateLocale)}</p>
+                    </div>
+                    <div>
+                      <p className="text-stone-400">{t.common.hours}</p>
+                      <p className="font-mono text-stone-700">{hours}</p>
+                    </div>
+                    <div>
+                      <p className="text-stone-400">{t.common.clockIn}</p>
+                      <p className="font-mono text-stone-700">{fmt(e.clockIn, t.dateLocale)}</p>
+                    </div>
+                    <div>
+                      <p className="text-stone-400">{t.common.clockOut}</p>
+                      <p className="font-mono">{e.clockOut ? fmt(e.clockOut, t.dateLocale) : <span className="text-green-600">{t.common.active}</span>}</p>
+                    </div>
+                  </div>
+                  <div className="pt-2 border-t border-stone-100 space-y-2">
+                    {e.status === "PENDING" && e.clockOut && (
+                      <ApproveRejectButtons entryId={e.id} />
+                    )}
+                    <TimeEntryEditor
+                      entryId={e.id}
+                      clockIn={e.clockIn.toISOString()}
+                      clockOut={e.clockOut?.toISOString() ?? null}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Desktop table */}
+          <div className="hidden sm:block rounded-lg border border-stone-200 bg-white shadow-sm overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-stone-50">
+                <tr>
+                  <th className="px-4 py-2 text-left font-medium text-stone-500">{t.common.employee}</th>
+                  <th className="px-4 py-2 text-left font-medium text-stone-500">{t.common.date}</th>
+                  <th className="px-4 py-2 text-left font-medium text-stone-500">{t.common.clockIn}</th>
+                  <th className="px-4 py-2 text-left font-medium text-stone-500">{t.common.clockOut}</th>
+                  <th className="px-4 py-2 text-left font-medium text-stone-500">{t.common.hours}</th>
+                  <th className="px-4 py-2 text-left font-medium text-stone-500">{t.common.status}</th>
+                  <th className="px-4 py-2 text-left font-medium text-stone-500">{t.common.actions}</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-stone-100">
+                {entries.map((e) => {
+                  const hours = e.clockOut
+                    ? ((e.clockOut.getTime() - e.clockIn.getTime()) / 3600000).toFixed(2)
+                    : "—";
+                  return (
+                    <tr key={e.id} className="hover:bg-stone-50 transition-colors align-top">
+                      <td className="px-4 py-3">
+                        <p className="font-medium text-stone-900">{e.user.name ?? "—"}</p>
+                        <p className="text-xs text-stone-400">{e.user.email}</p>
+                      </td>
+                      <td className="px-4 py-3 font-mono text-stone-600">
+                        {e.clockIn.toLocaleDateString(t.dateLocale)}
+                      </td>
+                      <td className="px-4 py-3 font-mono text-stone-700">{fmt(e.clockIn, t.dateLocale)}</td>
+                      <td className="px-4 py-3 font-mono">{e.clockOut ? fmt(e.clockOut, t.dateLocale) : <span className="text-green-600">{t.common.active}</span>}</td>
+                      <td className="px-4 py-3 font-mono text-stone-700">{hours}</td>
+                      <td className="px-4 py-3">
+                        <StatusBadge status={e.status} t={t} />
+                      </td>
+                      <td className="px-4 py-3 space-y-2">
+                        {e.status === "PENDING" && e.clockOut && (
+                          <ApproveRejectButtons entryId={e.id} />
+                        )}
+                        <TimeEntryEditor
+                          entryId={e.id}
+                          clockIn={e.clockIn.toISOString()}
+                          clockOut={e.clockOut?.toISOString() ?? null}
+                        />
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
     </div>
   );
 }

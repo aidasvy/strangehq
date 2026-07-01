@@ -509,9 +509,9 @@ export function ScheduleBuilder({
             return (
               <div key={emp.id} className="rounded-lg border border-stone-200 bg-white shadow-sm p-3">
                 <div className="flex items-start justify-between gap-2 mb-2">
-                  <div>
+                  <div className="min-w-0">
                     <div className="flex items-center gap-1.5">
-                      <p className="font-medium text-stone-800 text-sm">{emp.name ?? "—"}</p>
+                      <p className="font-medium text-stone-800 text-sm truncate">{emp.name ?? "—"}</p>
                       {emp.role !== "EMPLOYEE" && (
                         <span className={`inline-flex rounded-full px-1.5 py-0 text-xs font-medium ${ROLE_BADGE[emp.role]}`}>
                           {emp.role === "MANAGER" ? "Mgr" : "Admin"}

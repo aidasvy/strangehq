@@ -75,24 +75,24 @@ export default async function SwapRequestsPage() {
           {pending.map((sw) => (
             <div key={sw.id} className="rounded-lg border border-stone-200 bg-white shadow-sm p-4 space-y-3">
               <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-sm font-semibold text-stone-900">
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-stone-900 break-words">
                     {sw.requester.name} ↔ {sw.targetUser.name}
                   </p>
                   <p className="text-xs text-stone-500 mt-0.5">
                     Requested {sw.createdAt.toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
                   </p>
                 </div>
-                {statusBadge(sw.status)}
+                <div className="shrink-0">{statusBadge(sw.status)}</div>
               </div>
-              <div className="grid grid-cols-2 gap-3 text-xs">
-                <div className="rounded-md bg-stone-50 p-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                <div className="rounded-md bg-stone-50 p-3 min-w-0">
                   <p className="text-stone-400 mb-1">{sw.requester.name} takes</p>
-                  <p className="font-medium text-stone-800">{fmtShift(sw.targetShift.date, sw.targetShift.startTime, sw.targetShift.endTime, sw.targetShift.schedule.location.name)}</p>
+                  <p className="font-medium text-stone-800 break-words">{fmtShift(sw.targetShift.date, sw.targetShift.startTime, sw.targetShift.endTime, sw.targetShift.schedule.location.name)}</p>
                 </div>
-                <div className="rounded-md bg-stone-50 p-3">
+                <div className="rounded-md bg-stone-50 p-3 min-w-0">
                   <p className="text-stone-400 mb-1">{sw.targetUser.name} takes</p>
-                  <p className="font-medium text-stone-800">{fmtShift(sw.requesterShift.date, sw.requesterShift.startTime, sw.requesterShift.endTime, sw.requesterShift.schedule.location.name)}</p>
+                  <p className="font-medium text-stone-800 break-words">{fmtShift(sw.requesterShift.date, sw.requesterShift.startTime, sw.requesterShift.endTime, sw.requesterShift.schedule.location.name)}</p>
                 </div>
               </div>
               <SwapActions swapId={sw.id} />
@@ -107,16 +107,16 @@ export default async function SwapRequestsPage() {
           <div className="rounded-lg border border-stone-200 bg-white shadow-sm divide-y divide-stone-100">
             {others.map((sw) => (
               <div key={sw.id} className="px-4 py-3 flex items-center justify-between gap-3">
-                <div>
+                <div className="min-w-0">
                   <p className="text-sm font-medium text-stone-800">
                     {sw.requester.name} ↔ {sw.targetUser.name}
                   </p>
-                  <p className="text-xs text-stone-400 mt-0.5">
+                  <p className="text-xs text-stone-400 mt-0.5 break-words">
                     {fmtShift(sw.requesterShift.date, sw.requesterShift.startTime, sw.requesterShift.endTime, sw.requesterShift.schedule.location.name)} →{" "}
                     {fmtShift(sw.targetShift.date, sw.targetShift.startTime, sw.targetShift.endTime, sw.targetShift.schedule.location.name)}
                   </p>
                 </div>
-                {statusBadge(sw.status)}
+                <div className="shrink-0">{statusBadge(sw.status)}</div>
               </div>
             ))}
           </div>

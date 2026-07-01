@@ -5,7 +5,7 @@ function getResend(): Resend {
   if (!_resend) _resend = new Resend(process.env.RESEND_API_KEY!);
   return _resend;
 }
-const FROM = process.env.EMAIL_FROM ?? "ShiftSync <noreply@shiftsync.app>";
+const FROM = process.env.EMAIL_FROM ?? "StrangeHQ <noreply@strangehq.app>";
 
 export type ShiftRow = {
   date: Date;
@@ -62,14 +62,14 @@ function wrapper(title: string, body: string): string {
 <body style="margin:0;padding:0;background:#fafaf9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
   <div style="max-width:560px;margin:40px auto;background:#fff;border:1px solid #e7e5e4;border-radius:8px;overflow:hidden;">
     <div style="background:#1c1917;padding:20px 24px;">
-      <span style="color:#fff;font-weight:700;font-size:16px;letter-spacing:-.01em;">ShiftSync</span>
+      <span style="color:#fff;font-weight:700;font-size:16px;letter-spacing:-.01em;">StrangeHQ</span>
     </div>
     <div style="padding:28px 24px;">
       <h2 style="margin:0 0 16px;font-size:18px;font-weight:700;color:#1c1917;">${title}</h2>
       ${body}
     </div>
     <div style="padding:16px 24px;background:#fafaf9;border-top:1px solid #e7e5e4;">
-      <p style="margin:0;font-size:12px;color:#a8a29e;">You're receiving this because you're part of a company on ShiftSync.</p>
+      <p style="margin:0;font-size:12px;color:#a8a29e;">You're receiving this because you're part of a company on StrangeHQ.</p>
     </div>
   </div>
 </body>

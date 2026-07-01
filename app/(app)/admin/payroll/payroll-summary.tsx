@@ -81,102 +81,187 @@ export function PayrollSummary({ summaryData, config, year, month, monthLabel }:
         <span className="text-xs text-stone-400 ml-2">Based on approved time entries</span>
       </div>
 
-      <div className="rounded-lg border border-stone-200 bg-white shadow-sm overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead className="bg-stone-50">
-            <tr>
-              <th className="px-4 py-2 text-left font-medium text-stone-500">Employee</th>
-              <th className="px-4 py-2 text-right font-medium text-stone-500">Hours</th>
-              <th className="px-4 py-2 text-left font-medium text-stone-500">Premiums</th>
-              <th className="px-4 py-2 text-right font-medium text-stone-500">Rate</th>
-              <th className="px-4 py-2 text-right font-medium text-stone-500">Gross</th>
-              <th className="px-4 py-2 text-right font-medium text-stone-500">Sodra (emp)</th>
-              <th className="px-4 py-2 text-right font-medium text-stone-500">GPM</th>
-              <th className="px-4 py-2 text-right font-medium text-stone-500 text-green-700">Net</th>
-              <th className="px-4 py-2 text-right font-medium text-stone-500">Employer cost</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-stone-100">
+      {rowsWithPayroll.length === 0 && noRate.length === 0 ? (
+        <div className="rounded-lg border border-stone-200 bg-white shadow-sm p-4">
+          <p className="text-sm text-stone-400">No employees found</p>
+        </div>
+      ) : (
+        <>
+          {/* Mobile card view */}
+          <div className="sm:hidden space-y-3">
             {rowsWithPayroll.map((r) => {
               const bd = r.breakdown;
               const hasPremiums = bd && (bd.overtimeHours > 0.01 || bd.nightHours > 0.01 || bd.sundayHours > 0.01 || bd.holidayHours > 0.01);
               return (
-                <tr key={r.memberId} className="hover:bg-stone-50 transition-colors">
-                  <td className="px-4 py-3 font-medium">{r.name ?? "—"}</td>
-                  <td className="px-4 py-3 text-right tabular-nums">{r.totalHours.toFixed(2)}</td>
-                  <td className="px-4 py-3">
-                    {hasPremiums ? (
-                      <div className="flex flex-wrap gap-1">
-                        {bd!.overtimeHours > 0.01 && <PremiumBadge label="OT" hours={bd!.overtimeHours} highlight />}
-                        {bd!.nightHours > 0.01 && <PremiumBadge label="night" hours={bd!.nightHours} />}
-                        {bd!.sundayHours > 0.01 && <PremiumBadge label="Sun" hours={bd!.sundayHours} />}
-                        {bd!.holidayHours > 0.01 && <PremiumBadge label="holiday" hours={bd!.holidayHours} />}
-                      </div>
-                    ) : (
-                      <span className="text-stone-400 text-xs">—</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-right tabular-nums text-stone-500">
-                    {r.hourlyRate ? `€${r.hourlyRate.toFixed(2)}/h` : "—"}
-                  </td>
-                  <td className="px-4 py-3 text-right tabular-nums">
-                    {formatEur(r.gross)}
-                    {hasPremiums && (
-                      <div className="text-xs text-stone-400">
-                        vs {formatEur(r.hourlyRate! * r.totalHours)} flat
-                      </div>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-right tabular-nums text-red-600">
-                    {r.payroll ? `−${formatEur(r.payroll.sodraEmployee)}` : "—"}
-                  </td>
-                  <td className="px-4 py-3 text-right tabular-nums text-red-600">
-                    {r.payroll ? `−${formatEur(r.payroll.gpm)}` : "—"}
-                  </td>
-                  <td className="px-4 py-3 text-right tabular-nums font-semibold text-green-700">
-                    {r.payroll ? formatEur(r.payroll.netMonthly) : "—"}
-                  </td>
-                  <td className="px-4 py-3 text-right tabular-nums text-stone-600">
-                    {r.payroll ? formatEur(r.payroll.totalEmployerCost) : "—"}
-                  </td>
-                </tr>
+                <div key={r.memberId} className="rounded-lg border border-stone-200 bg-white shadow-sm p-4 space-y-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="font-medium text-stone-900 break-words min-w-0">{r.name ?? "—"}</p>
+                    <p className="text-xs text-stone-500 shrink-0 tabular-nums">{r.totalHours.toFixed(2)}h · €{r.hourlyRate?.toFixed(2)}/h</p>
+                  </div>
+                  {hasPremiums && (
+                    <div className="flex flex-wrap gap-1">
+                      {bd!.overtimeHours > 0.01 && <PremiumBadge label="OT" hours={bd!.overtimeHours} highlight />}
+                      {bd!.nightHours > 0.01 && <PremiumBadge label="night" hours={bd!.nightHours} />}
+                      {bd!.sundayHours > 0.01 && <PremiumBadge label="Sun" hours={bd!.sundayHours} />}
+                      {bd!.holidayHours > 0.01 && <PremiumBadge label="holiday" hours={bd!.holidayHours} />}
+                    </div>
+                  )}
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div>
+                      <p className="text-stone-400">Gross</p>
+                      <p className="tabular-nums text-stone-800">{formatEur(r.gross)}</p>
+                    </div>
+                    <div>
+                      <p className="text-stone-400">Sodra (emp)</p>
+                      <p className="tabular-nums text-red-600">{r.payroll ? `−${formatEur(r.payroll.sodraEmployee)}` : "—"}</p>
+                    </div>
+                    <div>
+                      <p className="text-stone-400">GPM</p>
+                      <p className="tabular-nums text-red-600">{r.payroll ? `−${formatEur(r.payroll.gpm)}` : "—"}</p>
+                    </div>
+                    <div>
+                      <p className="text-stone-400">Employer cost</p>
+                      <p className="tabular-nums text-stone-800">{r.payroll ? formatEur(r.payroll.totalEmployerCost) : "—"}</p>
+                    </div>
+                  </div>
+                  <div className="pt-2 border-t border-stone-100 flex items-center justify-between">
+                    <p className="text-xs text-stone-400">Net</p>
+                    <p className="text-base font-semibold text-green-700 tabular-nums">{r.payroll ? formatEur(r.payroll.netMonthly) : "—"}</p>
+                  </div>
+                </div>
               );
             })}
 
             {noRate.map((r) => (
-              <tr key={r.memberId} className="text-stone-400 hover:bg-stone-50 transition-colors">
-                <td className="px-4 py-3">{r.name ?? "—"}</td>
-                <td className="px-4 py-3 text-right">{r.totalHours.toFixed(2)}</td>
-                <td className="px-4 py-3" />
-                <td className="px-4 py-3 text-right text-xs italic">no rate set</td>
-                <td colSpan={5} className="px-4 py-3 text-center text-xs italic">
-                  Set hourly rate in Employees to see payroll
-                </td>
-              </tr>
+              <div key={r.memberId} className="rounded-lg border border-stone-200 bg-white shadow-sm p-4 text-stone-400">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm">{r.name ?? "—"}</p>
+                  <p className="text-xs tabular-nums">{r.totalHours.toFixed(2)}h</p>
+                </div>
+                <p className="text-xs italic mt-1">No hourly rate set — set it in Employees to see payroll</p>
+              </div>
             ))}
 
             {rowsWithPayroll.length > 0 && (
-              <tr className="bg-stone-50 font-semibold">
-                <td className="px-4 py-3">Total</td>
-                <td className="px-4 py-3 text-right tabular-nums">
-                  {summaryData.reduce((s, r) => s + r.totalHours, 0).toFixed(2)}
-                </td>
-                <td className="px-4 py-3" />
-                <td className="px-4 py-3" />
-                <td className="px-4 py-3 text-right tabular-nums">{formatEur(totalGross)}</td>
-                <td className="px-4 py-3" />
-                <td className="px-4 py-3" />
-                <td className="px-4 py-3 text-right tabular-nums text-green-700">{formatEur(totalNet)}</td>
-                <td className="px-4 py-3 text-right tabular-nums">{formatEur(totalCost)}</td>
-              </tr>
+              <div className="rounded-lg border border-stone-300 bg-stone-50 p-4 space-y-2">
+                <p className="text-sm font-semibold text-stone-800">Total</p>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div>
+                    <p className="text-stone-400">Hours</p>
+                    <p className="tabular-nums font-semibold">{summaryData.reduce((s, r) => s + r.totalHours, 0).toFixed(2)}</p>
+                  </div>
+                  <div>
+                    <p className="text-stone-400">Gross</p>
+                    <p className="tabular-nums font-semibold">{formatEur(totalGross)}</p>
+                  </div>
+                  <div>
+                    <p className="text-stone-400">Net</p>
+                    <p className="tabular-nums font-semibold text-green-700">{formatEur(totalNet)}</p>
+                  </div>
+                  <div>
+                    <p className="text-stone-400">Employer cost</p>
+                    <p className="tabular-nums font-semibold">{formatEur(totalCost)}</p>
+                  </div>
+                </div>
+              </div>
             )}
-          </tbody>
-        </table>
+          </div>
 
-        {rowsWithPayroll.length === 0 && noRate.length === 0 && (
-          <p className="p-4 text-sm text-stone-400">No employees found</p>
-        )}
-      </div>
+          {/* Desktop table */}
+          <div className="hidden sm:block rounded-lg border border-stone-200 bg-white shadow-sm overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-stone-50">
+                <tr>
+                  <th className="px-4 py-2 text-left font-medium text-stone-500">Employee</th>
+                  <th className="px-4 py-2 text-right font-medium text-stone-500">Hours</th>
+                  <th className="px-4 py-2 text-left font-medium text-stone-500">Premiums</th>
+                  <th className="px-4 py-2 text-right font-medium text-stone-500">Rate</th>
+                  <th className="px-4 py-2 text-right font-medium text-stone-500">Gross</th>
+                  <th className="px-4 py-2 text-right font-medium text-stone-500">Sodra (emp)</th>
+                  <th className="px-4 py-2 text-right font-medium text-stone-500">GPM</th>
+                  <th className="px-4 py-2 text-right font-medium text-stone-500 text-green-700">Net</th>
+                  <th className="px-4 py-2 text-right font-medium text-stone-500">Employer cost</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-stone-100">
+                {rowsWithPayroll.map((r) => {
+                  const bd = r.breakdown;
+                  const hasPremiums = bd && (bd.overtimeHours > 0.01 || bd.nightHours > 0.01 || bd.sundayHours > 0.01 || bd.holidayHours > 0.01);
+                  return (
+                    <tr key={r.memberId} className="hover:bg-stone-50 transition-colors">
+                      <td className="px-4 py-3 font-medium">{r.name ?? "—"}</td>
+                      <td className="px-4 py-3 text-right tabular-nums">{r.totalHours.toFixed(2)}</td>
+                      <td className="px-4 py-3">
+                        {hasPremiums ? (
+                          <div className="flex flex-wrap gap-1">
+                            {bd!.overtimeHours > 0.01 && <PremiumBadge label="OT" hours={bd!.overtimeHours} highlight />}
+                            {bd!.nightHours > 0.01 && <PremiumBadge label="night" hours={bd!.nightHours} />}
+                            {bd!.sundayHours > 0.01 && <PremiumBadge label="Sun" hours={bd!.sundayHours} />}
+                            {bd!.holidayHours > 0.01 && <PremiumBadge label="holiday" hours={bd!.holidayHours} />}
+                          </div>
+                        ) : (
+                          <span className="text-stone-400 text-xs">—</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-right tabular-nums text-stone-500">
+                        {r.hourlyRate ? `€${r.hourlyRate.toFixed(2)}/h` : "—"}
+                      </td>
+                      <td className="px-4 py-3 text-right tabular-nums">
+                        {formatEur(r.gross)}
+                        {hasPremiums && (
+                          <div className="text-xs text-stone-400">
+                            vs {formatEur(r.hourlyRate! * r.totalHours)} flat
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-right tabular-nums text-red-600">
+                        {r.payroll ? `−${formatEur(r.payroll.sodraEmployee)}` : "—"}
+                      </td>
+                      <td className="px-4 py-3 text-right tabular-nums text-red-600">
+                        {r.payroll ? `−${formatEur(r.payroll.gpm)}` : "—"}
+                      </td>
+                      <td className="px-4 py-3 text-right tabular-nums font-semibold text-green-700">
+                        {r.payroll ? formatEur(r.payroll.netMonthly) : "—"}
+                      </td>
+                      <td className="px-4 py-3 text-right tabular-nums text-stone-600">
+                        {r.payroll ? formatEur(r.payroll.totalEmployerCost) : "—"}
+                      </td>
+                    </tr>
+                  );
+                })}
+
+                {noRate.map((r) => (
+                  <tr key={r.memberId} className="text-stone-400 hover:bg-stone-50 transition-colors">
+                    <td className="px-4 py-3">{r.name ?? "—"}</td>
+                    <td className="px-4 py-3 text-right">{r.totalHours.toFixed(2)}</td>
+                    <td className="px-4 py-3" />
+                    <td className="px-4 py-3 text-right text-xs italic">no rate set</td>
+                    <td colSpan={5} className="px-4 py-3 text-center text-xs italic">
+                      Set hourly rate in Employees to see payroll
+                    </td>
+                  </tr>
+                ))}
+
+                {rowsWithPayroll.length > 0 && (
+                  <tr className="bg-stone-50 font-semibold">
+                    <td className="px-4 py-3">Total</td>
+                    <td className="px-4 py-3 text-right tabular-nums">
+                      {summaryData.reduce((s, r) => s + r.totalHours, 0).toFixed(2)}
+                    </td>
+                    <td className="px-4 py-3" />
+                    <td className="px-4 py-3" />
+                    <td className="px-4 py-3 text-right tabular-nums">{formatEur(totalGross)}</td>
+                    <td className="px-4 py-3" />
+                    <td className="px-4 py-3" />
+                    <td className="px-4 py-3 text-right tabular-nums text-green-700">{formatEur(totalNet)}</td>
+                    <td className="px-4 py-3 text-right tabular-nums">{formatEur(totalCost)}</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
 
       <p className="text-xs text-stone-400">
         Overtime (&gt;40h/week) +{Math.round(config.overtimePremium * 100)}% · Night (22:00–06:00) +{Math.round(config.nightPremium * 100)}% · Sunday +{Math.round(config.sundayPremium * 100)}% · Public holiday +{Math.round(config.holidayPremium * 100)}%. Premiums stack.

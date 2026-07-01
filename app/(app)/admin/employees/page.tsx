@@ -44,7 +44,55 @@ export default async function EmployeesPage() {
         </a>
       </div>
 
-      <div className="rounded-lg border border-stone-200 bg-white shadow-sm overflow-hidden">
+      {/* Mobile card view */}
+      <div className="sm:hidden space-y-3">
+        {members.map((m) => (
+          <div key={m.id} className="rounded-lg border border-stone-200 bg-white shadow-sm p-4 space-y-3">
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <p className="font-medium text-stone-900 break-words">{m.user.name ?? "—"}</p>
+                <p className="text-xs text-stone-400 break-words">{m.user.email}</p>
+                {m.user.phone && <p className="text-xs text-stone-400">{m.user.phone}</p>}
+              </div>
+              <div className="shrink-0">
+                <EmployeeRoleEditor
+                  memberId={m.id}
+                  currentRole={m.role as "EMPLOYEE" | "MANAGER" | "ADMIN"}
+                  isSelf={m.userId === membership.userId}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3 text-xs">
+              <div>
+                <p className="text-stone-400 mb-1">{t.common.position}</p>
+                <EmployeePositionEditor memberId={m.id} currentPosition={m.position ?? null} />
+              </div>
+              <div>
+                <p className="text-stone-400 mb-1">{t.adminEmployees.grossHourly}</p>
+                <EmployeeRateEditor memberId={m.id} currentRate={m.hourlyRate?.toString() ?? ""} />
+              </div>
+              <div>
+                <p className="text-stone-400 mb-1">{t.adminEmployees.annualLeave}</p>
+                <EmployeeLeaveDaysEditor memberId={m.id} currentDays={m.annualLeaveDays} />
+              </div>
+              <div>
+                <p className="text-stone-400 mb-1">{t.adminEmployees.employmentStart}</p>
+                <EmployeeStartDateEditor
+                  memberId={m.id}
+                  currentDate={m.employmentStartDate ? m.employmentStartDate.toISOString().slice(0, 10) : null}
+                />
+              </div>
+            </div>
+            <div className="flex items-center justify-between pt-2 border-t border-stone-100">
+              <p className="text-xs text-stone-400">{t.adminEmployees.joined} {m.createdAt.toLocaleDateString(t.dateLocale)}</p>
+              <RemoveMemberButton memberId={m.id} name={m.user.name ?? m.user.email ?? "this person"} />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop table */}
+      <div className="hidden sm:block rounded-lg border border-stone-200 bg-white shadow-sm overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="bg-stone-50">
             <tr>

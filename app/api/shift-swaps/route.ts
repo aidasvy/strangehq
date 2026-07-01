@@ -4,7 +4,7 @@ import { Prisma } from "@/app/generated/prisma/client";
 import { sendSwapRequestedEmail, ShiftRow } from "@/lib/email";
 import { NextResponse } from "next/server";
 
-const APP_URL = process.env.NEXTAUTH_URL ?? process.env.APP_URL ?? "https://shiftsync.app";
+const APP_URL = process.env.NEXTAUTH_URL ?? process.env.APP_URL ?? "https://strangehq.app";
 
 class SwapConflictError extends Error {}
 

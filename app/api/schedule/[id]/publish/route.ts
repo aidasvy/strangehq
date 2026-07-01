@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import { sendSchedulePublishedEmail, ShiftRow } from "@/lib/email";
 import { NextResponse } from "next/server";
 
-const APP_URL = process.env.NEXTAUTH_URL ?? process.env.APP_URL ?? "https://shiftsync.app";
+const APP_URL = process.env.NEXTAUTH_URL ?? process.env.APP_URL ?? "https://strangehq.app";
 
 export async function POST(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
