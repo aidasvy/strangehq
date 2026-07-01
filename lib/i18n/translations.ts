@@ -356,7 +356,7 @@ const lt: typeof en = {
     viewAll: "Žiūrėti visus →",
     nobodyClocked: "Niekas šiuo metu neprisijungęs",
     mayForgot: "· galbūt pamiršo išsijungti",
-    pendingApprovals: "Laukiantys patvirtinimo",
+    pendingApprovals: "Laukiantys patvirtinimai",
     holidayRequests: "Atostogų prašymai",
     teamMembers: "Komandos nariai",
     locations: "Vietos",
@@ -364,13 +364,13 @@ const lt: typeof en = {
     scheduleDesc: "Sukurk ir publikuok savaitinį grafiką",
     approveEntries: "Patvirtink laiko įrašus",
     approveEntriesDesc: "Peržiūrėk ir patvirtink pateiktas valandas",
-    holidayRequestsDesc: "Patvirtink arba atmeskite atostogų prašymus",
+    holidayRequestsDesc: "Patvirtink arba atmesk atostogų prašymus",
     locationsStaffing: "Vietos ir darbuotojai",
     locationsDesc: "Valdyk vietas ir minimalius darbuotojų reikalavimus",
     settingsInvite: "Nustatymai ir pakvietimo kodai",
     settingsDesc: "Sukurk kodus naujiems darbuotojams",
     payroll: "Payroll",
-    payrollDesc: "Mėnesio atlyginimų suvestinė su mokesčių suvestine",
+    payrollDesc: "Mėnesio atlyginimų suvestinė su mokesčiais",
   },
 
   adminSchedule: {
@@ -403,7 +403,7 @@ const lt: typeof en = {
     approving: "Tvirtinama…",
     approveAll: (n: number): string => `Patvirtinti visus (${n})`,
     approveFailed: (n: number): string =>
-      `${n} įraš${n === 1 ? "as" : "ų"} nepavyko patvirtinti. Atnaujink puslapį ir bandyk dar kartą.`,
+      `${n === 1 ? "1 įrašo" : `${n} įrašų`} nepavyko patvirtinti. Atnaujink puslapį ir bandyk dar kartą.`,
     approve: "Patvirtinti",
     reject: "Atmesti",
   },
@@ -412,7 +412,7 @@ const lt: typeof en = {
     title: "Darbuotojai",
     grossHourly: "Valandinis bruto (€)",
     annualLeave: "Metinės atostogos",
-    employmentStart: "Pradžios data",
+    employmentStart: "Įdarbinimo data",
     joined: "Prisijungė",
     notSet: "Nenustatyta",
   },
@@ -494,7 +494,7 @@ const lt: typeof en = {
 
   availability: {
     title: "Prieinamumas",
-    subtitle: "Pranesk vadovui, kada gali dirbti",
+    subtitle: "Pranešk vadovui, kada gali dirbti",
     nextWeek: "Kita savaitė",
     weekAfter: "Savaitė po kitos",
     weekAfterNext: "Savaitė po kitos",
