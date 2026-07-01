@@ -44,7 +44,7 @@ export function SidebarNav({ companyName, userName, userEmail, isAdmin, isFullAd
     { href: "/dashboard", label: t.nav.home, exact: true },
     { href: "/dashboard/hours", label: t.nav.hours },
     { href: "/dashboard/schedule", label: t.nav.schedule },
-    { href: "/dashboard/holidays", label: t.nav.leaveTab },
+    { href: "/dashboard/availability", label: t.nav.availability },
     ...(isAdmin ? [{ href: "/admin", label: t.nav.admin, exact: true }] : []),
   ];
 
@@ -205,10 +205,10 @@ function TabIcon({ href, active }: { href: string; active: boolean }) {
       <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
     </svg>
   );
-  if (href === "/dashboard/holidays") return (
+  if (href === "/dashboard/availability") return (
     <svg className={cls} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={active ? 2.5 : 2}>
-      <circle cx="12" cy="12" r="3.75" />
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25M12 18.75V21M5.636 5.636l1.591 1.591M16.773 16.773l1.591 1.591M3 12h2.25M18.75 12H21M5.636 18.364l1.591-1.591M16.773 7.227l1.591-1.591" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 16l2 2 4-4" />
     </svg>
   );
   // Admin
