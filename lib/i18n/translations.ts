@@ -498,7 +498,7 @@ const lt: typeof en = {
     nextWeek: "Kita savaitė",
     weekAfter: "Savaitė po kitos",
     weekAfterNext: "+2 savaitės",
-    notAvailable: "Neprieinamas",
+    notAvailable: "Galimybės nėra",
     to: "iki",
     saveAvailability: "Išsaugoti prieinamumą",
     saving: "Išsaugoma…",
