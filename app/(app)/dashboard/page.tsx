@@ -2,6 +2,8 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { cookies } from "next/headers";
+import { getTranslations } from "@/lib/i18n/translations";
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -41,6 +43,9 @@ export default async function DashboardPage() {
 
   if (!membership) redirect("/onboarding");
 
+  const locale = (await cookies()).get("locale")?.value ?? "lt";
+  const t = getTranslations(locale);
+
   const weekHours = weekEntries.reduce((sum, e) => {
     if (!e.clockOut) return sum;
     return sum + (e.clockOut.getTime() - e.clockIn.getTime()) / 3600000;
@@ -56,7 +61,7 @@ export default async function DashboardPage() {
       {/* Header */}
       <div>
         <h1 className="text-xl font-bold text-stone-900">
-          Good {greeting()}, {session.user.name?.split(" ")[0] ?? "there"}
+          {greeting(t)}, {session.user.name?.split(" ")[0] ?? ""}
         </h1>
         <p className="text-sm text-stone-400">{membership.company.name}</p>
       </div>
@@ -69,12 +74,12 @@ export default async function DashboardPage() {
         >
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-green-100 text-sm font-medium">Shift in progress</p>
+              <p className="text-green-100 text-sm font-medium">{t.dash.shiftActive}</p>
               <p className="text-3xl font-bold mt-1 tabular-nums tracking-tight">
                 {elapsedString(openEntry.clockIn)}
               </p>
               <p className="text-green-200 text-xs mt-1">
-                Since {fmt(openEntry.clockIn)} · tap to clock out
+                {t.dash.since} {fmt(openEntry.clockIn, t.dateLocale)} · {t.dash.tapToEnd}
               </p>
             </div>
             <span className="inline-flex items-center gap-1.5 rounded-full bg-green-500 bg-opacity-50 px-2.5 py-1 text-xs font-medium text-white">
@@ -90,17 +95,17 @@ export default async function DashboardPage() {
         >
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-semibold text-stone-800">Not clocked in</p>
+              <p className="font-semibold text-stone-800">{t.dash.shiftIdle}</p>
               {todayShift ? (
                 <p className="text-sm text-stone-500 mt-0.5">
-                  Today: {todayShift.startTime} – {todayShift.endTime}
+                  {t.dash.today}: {todayShift.startTime} – {todayShift.endTime}
                 </p>
               ) : (
-                <p className="text-sm text-stone-400 mt-0.5">No shift scheduled today</p>
+                <p className="text-sm text-stone-400 mt-0.5">{t.dash.noShiftsToday}</p>
               )}
             </div>
             <div className="rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white">
-              Clock in →
+              {t.dash.start}
             </div>
           </div>
         </Link>
@@ -113,10 +118,8 @@ export default async function DashboardPage() {
           className="flex items-center gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 hover:bg-amber-100 transition-colors"
         >
           <span className="text-amber-500 text-base">⏳</span>
-          <p className="text-sm text-amber-800">
-            {pendingEntries} {pendingEntries === 1 ? "entry" : "entries"} awaiting approval
-          </p>
-          <span className="ml-auto text-xs text-amber-600">View →</span>
+          <p className="text-sm text-amber-800">{t.dash.pendingEntries(pendingEntries)}</p>
+          <span className="ml-auto text-xs text-amber-600">{t.dash.view}</span>
         </Link>
       )}
       {pendingHolidays > 0 && (
@@ -125,46 +128,44 @@ export default async function DashboardPage() {
           className="flex items-center gap-3 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 hover:bg-blue-100 transition-colors"
         >
           <span className="text-blue-500 text-base">✈️</span>
-          <p className="text-sm text-blue-800">
-            {pendingHolidays} holiday {pendingHolidays === 1 ? "request" : "requests"} pending
-          </p>
-          <span className="ml-auto text-xs text-blue-600">View →</span>
+          <p className="text-sm text-blue-800">{t.dash.pendingHolidays(pendingHolidays)}</p>
+          <span className="ml-auto text-xs text-blue-600">{t.dash.view}</span>
         </Link>
       )}
 
       {/* Quick actions — icon tiles, no overflow */}
       <div className="grid grid-cols-4 gap-2">
-        <QuickTile href="/dashboard/hours" icon={<ClockIcon />} label="Hours" />
-        <QuickTile href="/dashboard/schedule" icon={<CalendarIcon />} label="Schedule" />
-        <QuickTile href="/dashboard/availability" icon={<ChecklistIcon />} label="Availability" />
-        <QuickTile href="/dashboard/holidays" icon={<PlaneIcon />} label="Time off" />
+        <QuickTile href="/dashboard/hours" icon={<ClockIcon />} label={t.nav.hours} />
+        <QuickTile href="/dashboard/schedule" icon={<CalendarIcon />} label={t.nav.schedule} />
+        <QuickTile href="/dashboard/availability" icon={<ChecklistIcon />} label={t.nav.availability} />
+        <QuickTile href="/dashboard/holidays" icon={<PlaneIcon />} label={t.nav.holidays} />
       </div>
 
       {/* Stats row */}
       <div className="grid grid-cols-2 gap-3">
         <div className="rounded-lg border border-stone-200 bg-white shadow-sm p-4">
-          <p className="text-xs text-stone-500 uppercase tracking-wider font-medium">This week</p>
+          <p className="text-xs text-stone-500 uppercase tracking-wider font-medium">{t.dash.thisWeek}</p>
           <p className="text-2xl font-bold text-stone-900 mt-1 tabular-nums">{weekHours.toFixed(1)}h</p>
           {estimatedGross !== null ? (
             <p className="text-xs text-stone-400 mt-0.5">≈ €{estimatedGross.toFixed(2)} gross</p>
           ) : (
-            <p className="text-xs text-stone-400 mt-0.5">approved hours</p>
+            <p className="text-xs text-stone-400 mt-0.5">{t.dash.approvedHours}</p>
           )}
         </div>
 
         <div className="rounded-lg border border-stone-200 bg-white shadow-sm p-4">
-          <p className="text-xs text-stone-500 uppercase tracking-wider font-medium">Next shift</p>
+          <p className="text-xs text-stone-500 uppercase tracking-wider font-medium">{t.dash.nextShift}</p>
           {upcomingShifts[0] ? (
             <>
               <p className="text-sm font-semibold text-stone-900 mt-1">
-                {fmtDate(upcomingShifts[0].date)}
+                {fmtDate(upcomingShifts[0].date, t.dateLocale)}
               </p>
               <p className="text-xs text-stone-500 mt-0.5">
                 {upcomingShifts[0].startTime} – {upcomingShifts[0].endTime}
               </p>
             </>
           ) : (
-            <p className="text-sm text-stone-400 mt-1">None scheduled</p>
+            <p className="text-sm text-stone-400 mt-1">{t.dash.notAssigned}</p>
           )}
         </div>
       </div>
@@ -173,15 +174,15 @@ export default async function DashboardPage() {
       {upcomingShifts.length > 1 && (
         <div className="rounded-lg border border-stone-200 bg-white shadow-sm overflow-hidden">
           <div className="px-4 py-3 border-b border-stone-100 flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-stone-700">Upcoming shifts</h2>
+            <h2 className="text-sm font-semibold text-stone-700">{t.dash.upcomingShifts}</h2>
             <Link href="/dashboard/schedule" className="text-xs text-stone-400 hover:text-stone-600 transition-colors">
-              Full schedule →
+              {t.dash.fullSchedule}
             </Link>
           </div>
           <div className="divide-y divide-stone-100">
             {upcomingShifts.map((s) => (
               <div key={s.id} className="flex items-center justify-between px-4 py-3">
-                <span className="text-sm font-medium text-stone-800">{fmtDate(s.date)}</span>
+                <span className="text-sm font-medium text-stone-800">{fmtDate(s.date, t.dateLocale)}</span>
                 <span className="text-xs text-stone-500 tabular-nums">{s.startTime} – {s.endTime}</span>
               </div>
             ))}
@@ -252,17 +253,17 @@ function elapsedString(clockIn: Date): string {
   return `${h}h ${String(m).padStart(2, "0")}m`;
 }
 
-function greeting() {
+function greeting(t: ReturnType<typeof getTranslations>) {
   const h = new Date().getHours();
-  if (h < 12) return "morning";
-  if (h < 17) return "afternoon";
-  return "evening";
+  if (h < 12) return t.dash.greetingMorning;
+  if (h < 17) return t.dash.greetingAfternoon;
+  return t.dash.greetingEvening;
 }
 
-function fmt(d: Date) {
-  return new Date(d).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+function fmt(d: Date, dateLocale: string) {
+  return new Date(d).toLocaleTimeString(dateLocale, { hour: "2-digit", minute: "2-digit" });
 }
 
-function fmtDate(d: Date) {
-  return new Date(d).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" });
+function fmtDate(d: Date, dateLocale: string) {
+  return new Date(d).toLocaleDateString(dateLocale, { weekday: "short", day: "numeric", month: "short" });
 }

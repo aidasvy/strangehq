@@ -4,6 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { useState } from "react";
+import { useLocale } from "@/lib/i18n/context";
+import { LocaleToggle } from "@/components/locale-toggle";
 
 interface Props {
   companyName: string;
@@ -16,33 +18,34 @@ interface Props {
 export function SidebarNav({ companyName, userName, userEmail, isAdmin, isFullAdmin }: Props) {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
+  const { t } = useLocale();
 
   const employeeLinks = [
-    { href: "/dashboard", label: "Home", exact: true },
-    { href: "/dashboard/hours", label: "Hours" },
-    { href: "/dashboard/schedule", label: "Schedule" },
-    { href: "/dashboard/availability", label: "Availability" },
-    { href: "/dashboard/holidays", label: "Holidays" },
+    { href: "/dashboard", label: t.nav.home, exact: true },
+    { href: "/dashboard/hours", label: t.nav.hours },
+    { href: "/dashboard/schedule", label: t.nav.schedule },
+    { href: "/dashboard/availability", label: t.nav.availability },
+    { href: "/dashboard/holidays", label: t.nav.holidays },
   ];
 
   const adminLinks = [
-    { href: "/admin", label: "Overview", exact: true },
-    { href: "/admin/schedule", label: "Schedule" },
-    { href: "/admin/time-entries", label: "Time entries" },
-    { href: "/admin/holidays", label: "Holidays" },
-    { href: "/admin/employees", label: "Employees" },
-    { href: "/admin/locations", label: "Locations" },
+    { href: "/admin", label: t.nav.home, exact: true },
+    { href: "/admin/schedule", label: t.nav.schedule },
+    { href: "/admin/time-entries", label: "Laiko įrašai" },
+    { href: "/admin/holidays", label: t.nav.holidays },
+    { href: "/admin/employees", label: "Darbuotojai" },
+    { href: "/admin/locations", label: "Vietos" },
     ...(isFullAdmin ? [{ href: "/admin/payroll", label: "Payroll" }] : []),
-    { href: "/admin/settings", label: "Settings" },
+    { href: "/admin/settings", label: "Nustatymai" },
   ];
 
   // Bottom tab items for mobile (most-used pages)
   const mobileTabs = [
-    { href: "/dashboard", label: "Home", exact: true },
-    { href: "/dashboard/hours", label: "Hours" },
-    { href: "/dashboard/schedule", label: "Schedule" },
-    { href: "/dashboard/holidays", label: "Leave" },
-    ...(isAdmin ? [{ href: "/admin", label: "Admin", exact: true }] : []),
+    { href: "/dashboard", label: t.nav.home, exact: true },
+    { href: "/dashboard/hours", label: t.nav.hours },
+    { href: "/dashboard/schedule", label: t.nav.schedule },
+    { href: "/dashboard/holidays", label: t.nav.leaveTab },
+    ...(isAdmin ? [{ href: "/admin", label: t.nav.admin, exact: true }] : []),
   ];
 
   return (
@@ -57,7 +60,7 @@ export function SidebarNav({ companyName, userName, userEmail, isAdmin, isFullAd
         </div>
 
         <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
-          <SectionLabel>Employee</SectionLabel>
+          <SectionLabel>{t.nav.employee}</SectionLabel>
           {employeeLinks.map((l) => (
             <NavLink key={l.href} href={l.href} pathname={pathname} exact={l.exact}>{l.label}</NavLink>
           ))}
@@ -65,7 +68,7 @@ export function SidebarNav({ companyName, userName, userEmail, isAdmin, isFullAd
           {isAdmin && (
             <>
               <div className="pt-3">
-                <SectionLabel>Admin</SectionLabel>
+                <SectionLabel>{t.nav.admin}</SectionLabel>
               </div>
               {adminLinks.map((l) => (
                 <NavLink key={l.href} href={l.href} pathname={pathname} exact={l.exact}>{l.label}</NavLink>
@@ -74,17 +77,20 @@ export function SidebarNav({ companyName, userName, userEmail, isAdmin, isFullAd
           )}
         </nav>
 
-        <div className="px-4 py-4 border-t border-stone-100 space-y-1.5">
+        <div className="px-4 py-4 border-t border-stone-100 space-y-2">
           <Link href="/dashboard/profile" className="block hover:opacity-80 transition-opacity">
             {userName && <p className="text-xs font-medium text-stone-700 truncate">{userName}</p>}
             <p className="text-xs text-stone-400 truncate">{userEmail}</p>
           </Link>
-          <button
-            onClick={() => signOut({ callbackUrl: "/" })}
-            className="text-xs text-stone-400 hover:text-stone-600 transition-colors"
-          >
-            Sign out
-          </button>
+          <div className="flex items-center justify-between">
+            <button
+              onClick={() => signOut({ callbackUrl: "/" })}
+              className="text-xs text-stone-400 hover:text-stone-600 transition-colors"
+            >
+              {t.nav.signOut}
+            </button>
+            <LocaleToggle />
+          </div>
         </div>
       </aside>
 
@@ -94,23 +100,26 @@ export function SidebarNav({ companyName, userName, userEmail, isAdmin, isFullAd
           Strange<span className="text-stone-400">HQ</span>
         </Link>
 
-        {/* Hamburger — opens full menu overlay */}
-        <button
-          onClick={() => setMenuOpen((v) => !v)}
-          className="p-2 rounded-md text-stone-600 hover:bg-stone-100 transition-colors"
-          aria-label="Open menu"
-        >
-          {menuOpen ? (
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          ) : (
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3 8h13a3 3 0 010 6h-1M16 8v8a3 3 0 01-3 3H6a3 3 0 01-3-3V8z" />
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 2c0 .9.6 1-1 2.5M9 2c0 .9.6 1-1 2.5" />
-            </svg>
-          )}
-        </button>
+        <div className="flex items-center gap-3">
+          <LocaleToggle />
+          {/* Hamburger — opens full menu overlay */}
+          <button
+            onClick={() => setMenuOpen((v) => !v)}
+            className="p-2 rounded-md text-stone-600 hover:bg-stone-100 transition-colors"
+            aria-label="Open menu"
+          >
+            {menuOpen ? (
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            ) : (
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 8h13a3 3 0 010 6h-1M16 8v8a3 3 0 01-3 3H6a3 3 0 01-3-3V8z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 2c0 .9.6 1-1 2.5M9 2c0 .9.6 1-1 2.5" />
+              </svg>
+            )}
+          </button>
+        </div>
       </div>
 
       {/* ── MOBILE MENU OVERLAY ─────────────────────────────────────── */}
@@ -121,7 +130,7 @@ export function SidebarNav({ companyName, userName, userEmail, isAdmin, isFullAd
           </div>
 
           <nav className="px-3 py-3 space-y-0.5">
-            <SectionLabel>Employee</SectionLabel>
+            <SectionLabel>{t.nav.employee}</SectionLabel>
             {employeeLinks.map((l) => (
               <NavLink key={l.href} href={l.href} pathname={pathname} exact={l.exact} onClick={() => setMenuOpen(false)}>
                 {l.label}
@@ -131,7 +140,7 @@ export function SidebarNav({ companyName, userName, userEmail, isAdmin, isFullAd
             {isAdmin && (
               <>
                 <div className="pt-3">
-                  <SectionLabel>Admin</SectionLabel>
+                  <SectionLabel>{t.nav.admin}</SectionLabel>
                 </div>
                 {adminLinks.map((l) => (
                   <NavLink key={l.href} href={l.href} pathname={pathname} exact={l.exact} onClick={() => setMenuOpen(false)}>
@@ -151,7 +160,7 @@ export function SidebarNav({ companyName, userName, userEmail, isAdmin, isFullAd
               onClick={() => signOut({ callbackUrl: "/" })}
               className="text-sm text-red-500 hover:text-red-700 font-medium transition-colors"
             >
-              Sign out
+              {t.nav.signOut}
             </button>
           </div>
         </div>

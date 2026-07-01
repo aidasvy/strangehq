@@ -1,6 +1,8 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
+import { cookies } from "next/headers";
+import { LocaleProvider } from "@/lib/i18n/context";
 
 export default async function AppLayout({
   children,
@@ -17,5 +19,7 @@ export default async function AppLayout({
 
   if (!membership) redirect("/onboarding");
 
-  return <>{children}</>;
+  const locale = (await cookies()).get("locale")?.value ?? "lt";
+
+  return <LocaleProvider locale={locale}>{children}</LocaleProvider>;
 }
