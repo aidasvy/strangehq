@@ -35,15 +35,21 @@ export default async function SchedulePage({
 
   // All weeks that have a published schedule for this company — lets the
   // employee jump straight to any week with real data instead of guessing offsets.
+  // Always show at least 4 weeks (padding forward from this week) so there's
+  // always something to click even before schedules further out are published.
   const publishedWeeks = await db.schedule.findMany({
     where: { companyId: membership.companyId, status: "PUBLISHED" },
     select: { weekStart: true },
     distinct: ["weekStart"],
     orderBy: { weekStart: "asc" },
   });
-  const weekOptions = [...new Set(publishedWeeks.map((w) => w.weekStart.getTime()))]
-    .sort((a, b) => a - b)
-    .map((ms) => new Date(ms));
+  const weekOptionSet = new Set(publishedWeeks.map((w) => w.weekStart.getTime()));
+  weekOptionSet.add(thisWeekStart.getTime());
+  const MIN_WEEKS = 4;
+  for (let offset = 1; weekOptionSet.size < MIN_WEEKS; offset++) {
+    weekOptionSet.add(thisWeekStart.getTime() + offset * 7 * 86400000);
+  }
+  const weekOptions = [...weekOptionSet].sort((a, b) => a - b).map((ms) => new Date(ms));
 
   const { week } = await searchParams;
   const requestedWeek = week ? new Date(week) : thisWeekStart;
@@ -141,6 +147,8 @@ export default async function SchedulePage({
   }));
 
   const isThisWeek = weekStart.getTime() === thisWeekStart.getTime();
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
   return (
     <div className="p-6 space-y-6">
@@ -193,45 +201,81 @@ export default async function SchedulePage({
           {t.dashSchedule.noSchedule}
         </div>
       ) : (
-        <div className="rounded-lg border border-stone-200 bg-white shadow-sm overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-stone-50">
-              <tr>
-                {weekDates.map((d, i) => (
-                  <th key={i} className="px-3 py-2 text-center font-medium text-stone-500">
-                    <p>{t.common.weekDaysShort[i]}</p>
-                    <p className="text-xs text-stone-400">{d.getDate()}</p>
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                {weekDates.map((d, i) => {
-                  const shift = myShiftProps.find(
-                    (s) => new Date(s.date).toDateString() === d.toDateString()
-                  );
-                  return (
-                    <td key={i} className="px-3 py-4 text-center align-top border-t border-stone-100">
-                      {shift ? (
-                        <div className="rounded bg-stone-100 text-stone-900 px-2 py-1.5 text-xs font-medium space-y-0.5">
-                          <p className="font-mono">{shift.startTime}–{shift.endTime}</p>
-                          <p className="text-stone-500 font-normal truncate">{shift.locationName}</p>
-                          {isThisWeek && <SwapButton myShift={shift} colleagueShifts={colleagueShifts} />}
-                        </div>
-                      ) : (
-                        <span className="text-stone-400 text-xs">—</span>
-                      )}
-                    </td>
-                  );
-                })}
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        <>
+          {/* ── MOBILE: stacked day cards ─────────────────────────────── */}
+          <div className="sm:hidden space-y-2">
+            {weekDates.map((d, i) => {
+              const shift = myShiftProps.find(
+                (s) => new Date(s.date).toDateString() === d.toDateString()
+              );
+              const isPast = d < today;
+              return (
+                <div key={i} className="rounded-lg border border-stone-200 bg-white shadow-sm p-3">
+                  <p className="text-xs font-semibold text-stone-500">
+                    {t.common.weekDaysFull[i]} <span className="font-normal text-stone-400">{d.getDate()}/{d.getMonth() + 1}</span>
+                  </p>
+                  {shift ? (
+                    <p className="text-sm font-mono font-medium text-stone-900 mt-1 break-words">
+                      {shift.startTime}–{shift.endTime} <span className="font-sans font-normal text-stone-500">· {shift.locationName}</span>
+                    </p>
+                  ) : (
+                    <p className="text-sm text-stone-300 mt-1">—</p>
+                  )}
+                  {shift && !isPast && (
+                    <SwapButton
+                      myShift={shift}
+                      colleagueShifts={colleagueShifts}
+                      label="Request swap"
+                      className="mt-2 w-full rounded-md border border-stone-300 px-3 py-1.5 text-xs font-medium text-stone-700 hover:bg-stone-50 transition-colors text-center"
+                    />
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* ── DESKTOP: week table ───────────────────────────────────── */}
+          <div className="hidden sm:block rounded-lg border border-stone-200 bg-white shadow-sm overflow-hidden">
+            <table className="w-full text-sm">
+              <thead className="bg-stone-50">
+                <tr>
+                  {weekDates.map((d, i) => (
+                    <th key={i} className="px-3 py-2 text-center font-medium text-stone-500">
+                      <p>{t.common.weekDaysShort[i]}</p>
+                      <p className="text-xs text-stone-400">{d.getDate()}</p>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  {weekDates.map((d, i) => {
+                    const shift = myShiftProps.find(
+                      (s) => new Date(s.date).toDateString() === d.toDateString()
+                    );
+                    const isPast = d < today;
+                    return (
+                      <td key={i} className="px-3 py-4 text-center align-top border-t border-stone-100">
+                        {shift ? (
+                          <div className="rounded bg-stone-100 text-stone-900 px-2 py-1.5 text-xs font-medium space-y-0.5">
+                            <p className="font-mono">{shift.startTime}–{shift.endTime}</p>
+                            <p className="text-stone-500 font-normal truncate">{shift.locationName}</p>
+                            {!isPast && <SwapButton myShift={shift} colleagueShifts={colleagueShifts} />}
+                          </div>
+                        ) : (
+                          <span className="text-stone-400 text-xs">—</span>
+                        )}
+                      </td>
+                    );
+                  })}
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
 
-      {isThisWeek && incomingSwapProps.length > 0 && (
+      {incomingSwapProps.length > 0 && (
         <div className="space-y-3">
           <h2 className="text-sm font-semibold text-stone-700">Incoming swap requests</h2>
           {incomingSwapProps.map((sw) => (

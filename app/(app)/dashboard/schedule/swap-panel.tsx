@@ -125,9 +125,13 @@ function SwapRequestModal({
 export function SwapButton({
   myShift,
   colleagueShifts,
+  label = "swap?",
+  className = "text-[10px] text-stone-400 hover:text-stone-700 underline underline-offset-2 mt-0.5 block",
 }: {
   myShift: MyShift;
   colleagueShifts: ColleagueShift[];
+  label?: string;
+  className?: string;
 }) {
   const [open, setOpen] = useState(false);
   const router = useRouter();
@@ -147,11 +151,8 @@ export function SwapButton({
 
   return (
     <>
-      <button
-        onClick={() => setOpen(true)}
-        className="text-[10px] text-stone-400 hover:text-stone-700 underline underline-offset-2 mt-0.5 block"
-      >
-        swap?
+      <button onClick={() => setOpen(true)} className={className}>
+        {label}
       </button>
       {open && (
         <SwapRequestModal
