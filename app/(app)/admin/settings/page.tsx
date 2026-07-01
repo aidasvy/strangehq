@@ -3,6 +3,8 @@ import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { InviteCodeManager } from "./invite-code-manager";
 import Link from "next/link";
+import { cookies } from "next/headers";
+import { getTranslations } from "@/lib/i18n/translations";
 
 export default async function SettingsPage() {
   const session = await auth();
@@ -13,6 +15,9 @@ export default async function SettingsPage() {
     include: { company: true },
   });
   if (!membership) redirect("/onboarding");
+
+  const locale = (await cookies()).get("locale")?.value ?? "lt";
+  const t = getTranslations(locale);
 
   const inviteCodes = await db.inviteCode.findMany({
     where: { companyId: membership.companyId },
@@ -31,17 +36,15 @@ export default async function SettingsPage() {
 
   return (
     <div className="p-6 space-y-6">
-      <Link href="/admin" className="text-sm text-stone-400 hover:text-stone-600 transition-colors">← Overview</Link>
+      <Link href="/admin" className="text-sm text-stone-400 hover:text-stone-600 transition-colors">{t.common.backOverview}</Link>
       <div>
-        <h1 className="text-2xl font-bold text-stone-900">Settings</h1>
+        <h1 className="text-2xl font-bold text-stone-900">{t.adminSettings.title}</h1>
         <p className="text-sm text-stone-500">{membership.company.name}</p>
       </div>
 
       <div className="rounded-lg border border-stone-200 bg-white shadow-sm p-5 space-y-4">
-        <h2 className="font-semibold text-stone-900">Invite codes</h2>
-        <p className="text-sm text-stone-500">
-          Generate codes to share with employees. They sign in with Google and enter the code to join.
-        </p>
+        <h2 className="font-semibold text-stone-900">{t.adminSettings.inviteCodes}</h2>
+        <p className="text-sm text-stone-500">{t.adminSettings.inviteDesc}</p>
         <InviteCodeManager companyId={membership.companyId} codes={codes} />
       </div>
     </div>

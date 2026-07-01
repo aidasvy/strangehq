@@ -2,9 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useLocale } from "@/lib/i18n/context";
 import type { AvailabilitySlot } from "./page";
-
-const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
 interface Props {
   companyId: string;
@@ -15,6 +14,8 @@ interface Props {
 
 export function AvailabilityForm({ companyId, weekStart, weekLabel, existing }: Props) {
   const router = useRouter();
+  const { t } = useLocale();
+  const DAYS = t.common.weekDaysFull;
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -80,7 +81,7 @@ export function AvailabilityForm({ companyId, weekStart, weekLabel, existing }: 
                     onChange={(e) => update(i, "startTime", e.target.value)}
                     className="rounded border border-stone-300 px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-stone-400"
                   />
-                  <span className="text-stone-400">to</span>
+                  <span className="text-stone-400">{t.availability.to}</span>
                   <input
                     type="time"
                     value={slot.endTime}
@@ -89,7 +90,7 @@ export function AvailabilityForm({ companyId, weekStart, weekLabel, existing }: 
                   />
                 </div>
               ) : (
-                <span className="text-sm text-stone-400">Not available</span>
+                <span className="text-sm text-stone-400">{t.availability.notAvailable}</span>
               )}
             </div>
           );
@@ -102,9 +103,9 @@ export function AvailabilityForm({ companyId, weekStart, weekLabel, existing }: 
           disabled={saving}
           className="rounded-lg bg-stone-800 px-5 py-2 text-sm font-medium text-white hover:bg-stone-700 disabled:opacity-50 transition-colors"
         >
-          {saving ? "Saving…" : "Save availability"}
+          {saving ? t.availability.saving : t.availability.saveAvailability}
         </button>
-        {saved && <span className="text-sm text-green-600">Saved!</span>}
+        {saved && <span className="text-sm text-green-600">{t.availability.saved}</span>}
       </div>
     </div>
   );

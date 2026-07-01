@@ -2,8 +2,8 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-
-const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+import { cookies } from "next/headers";
+import { getTranslations } from "@/lib/i18n/translations";
 
 function getWeekStart(offset = 0): Date {
   const now = new Date();
@@ -23,6 +23,9 @@ export default async function SchedulePage() {
   });
   if (!membership) redirect("/onboarding");
 
+  const locale = (await cookies()).get("locale")?.value ?? "lt";
+  const t = getTranslations(locale);
+
   const weekStart = getWeekStart();
 
   const schedules = await db.schedule.findMany({
@@ -40,7 +43,6 @@ export default async function SchedulePage() {
     },
   });
 
-  // Flatten shifts with their location name
   const myShifts = schedules.flatMap((s) =>
     s.shifts.map((shift) => ({ ...shift, locationName: s.location.name }))
   );
@@ -53,15 +55,15 @@ export default async function SchedulePage() {
 
   return (
     <div className="p-6 space-y-6">
-      <Link href="/dashboard" className="text-sm text-stone-400 hover:text-stone-600 transition-colors">← Home</Link>
-      <h1 className="text-2xl font-bold text-stone-900">My Schedule</h1>
+      <Link href="/dashboard" className="text-sm text-stone-400 hover:text-stone-600 transition-colors">{t.common.backHome}</Link>
+      <h1 className="text-2xl font-bold text-stone-900">{t.dashSchedule.title}</h1>
       <p className="text-sm text-stone-500">
-        Week of {weekStart.toLocaleDateString("lt-LT", { day: "numeric", month: "long", year: "numeric" })}
+        {t.dashSchedule.weekOf} {weekStart.toLocaleDateString(t.dateLocale, { day: "numeric", month: "long", year: "numeric" })}
       </p>
 
       {myShifts.length === 0 ? (
         <div className="rounded-lg border border-stone-200 bg-white shadow-sm p-6 text-center text-sm text-stone-400">
-          No published schedule for this week yet. Check back later.
+          {t.dashSchedule.noSchedule}
         </div>
       ) : (
         <div className="rounded-lg border border-stone-200 bg-white shadow-sm overflow-hidden">
@@ -70,7 +72,7 @@ export default async function SchedulePage() {
               <tr>
                 {weekDates.map((d, i) => (
                   <th key={i} className="px-3 py-2 text-center font-medium text-stone-500">
-                    <p>{DAYS[i]}</p>
+                    <p>{t.common.weekDaysShort[i]}</p>
                     <p className="text-xs text-stone-400">{d.getDate()}</p>
                   </th>
                 ))}

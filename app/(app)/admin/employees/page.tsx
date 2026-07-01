@@ -7,6 +7,8 @@ import { EmployeeLeaveDaysEditor } from "./employee-leave-days-editor";
 import { EmployeeStartDateEditor } from "./employee-start-date-editor";
 import { RemoveMemberButton } from "./remove-member-button";
 import Link from "next/link";
+import { cookies } from "next/headers";
+import { getTranslations } from "@/lib/i18n/translations";
 
 export default async function EmployeesPage() {
   const session = await auth();
@@ -17,6 +19,9 @@ export default async function EmployeesPage() {
   });
   if (!membership) redirect("/onboarding");
 
+  const locale = (await cookies()).get("locale")?.value ?? "lt";
+  const t = getTranslations(locale);
+
   const members = await db.companyMember.findMany({
     where: { companyId: membership.companyId },
     include: { user: { select: { name: true, email: true, image: true, phone: true } } },
@@ -25,8 +30,8 @@ export default async function EmployeesPage() {
 
   return (
     <div className="p-6 space-y-6">
-      <Link href="/admin" className="text-sm text-stone-400 hover:text-stone-600 transition-colors">← Overview</Link>
-      <h1 className="text-2xl font-bold text-stone-900">Employees</h1>
+      <Link href="/admin" className="text-sm text-stone-400 hover:text-stone-600 transition-colors">{t.common.backOverview}</Link>
+      <h1 className="text-2xl font-bold text-stone-900">{t.adminEmployees.title}</h1>
 
       <div className="flex justify-end">
         <a
@@ -34,7 +39,7 @@ export default async function EmployeesPage() {
           download
           className="rounded-lg border border-stone-200 bg-white px-4 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50 shadow-sm transition-colors"
         >
-          Export CSV
+          {t.common.exportCsv}
         </a>
       </div>
 
@@ -42,13 +47,13 @@ export default async function EmployeesPage() {
         <table className="w-full text-sm">
           <thead className="bg-stone-50">
             <tr>
-              <th className="px-4 py-2 text-left font-medium text-stone-500">Name</th>
-              <th className="px-4 py-2 text-left font-medium text-stone-500">Role</th>
-              <th className="px-4 py-2 text-left font-medium text-stone-500">Position</th>
-              <th className="px-4 py-2 text-left font-medium text-stone-500">Gross hourly rate (€)</th>
-              <th className="px-4 py-2 text-left font-medium text-stone-500">Annual leave</th>
-              <th className="px-4 py-2 text-left font-medium text-stone-500">Employment start</th>
-              <th className="px-4 py-2 text-left font-medium text-stone-500">Joined</th>
+              <th className="px-4 py-2 text-left font-medium text-stone-500">{t.common.name}</th>
+              <th className="px-4 py-2 text-left font-medium text-stone-500">{t.common.role}</th>
+              <th className="px-4 py-2 text-left font-medium text-stone-500">{t.common.position}</th>
+              <th className="px-4 py-2 text-left font-medium text-stone-500">{t.adminEmployees.grossHourly}</th>
+              <th className="px-4 py-2 text-left font-medium text-stone-500">{t.adminEmployees.annualLeave}</th>
+              <th className="px-4 py-2 text-left font-medium text-stone-500">{t.adminEmployees.employmentStart}</th>
+              <th className="px-4 py-2 text-left font-medium text-stone-500">{t.adminEmployees.joined}</th>
               <th className="px-4 py-2"></th>
             </tr>
           </thead>
@@ -83,7 +88,7 @@ export default async function EmployeesPage() {
                   />
                 </td>
                 <td className="px-4 py-3 text-stone-400 text-xs">
-                  {m.createdAt.toLocaleDateString("lt-LT")}
+                  {m.createdAt.toLocaleDateString(t.dateLocale)}
                 </td>
                 <td className="px-4 py-3">
                   <RemoveMemberButton memberId={m.id} name={m.user.name ?? m.user.email ?? "this person"} />

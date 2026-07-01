@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useLocale } from "@/lib/i18n/context";
 
 export function EmployeeStartDateEditor({
   memberId,
@@ -14,6 +15,7 @@ export function EmployeeStartDateEditor({
   const [editing, setEditing] = useState(false);
   const [date, setDate] = useState(currentDate ?? "");
   const [saving, setSaving] = useState(false);
+  const { t } = useLocale();
 
   async function save() {
     setSaving(true);
@@ -41,10 +43,10 @@ export function EmployeeStartDateEditor({
           disabled={saving}
           className="text-xs text-green-600 hover:text-green-800 font-medium disabled:opacity-50"
         >
-          {saving ? "…" : "Save"}
+          {saving ? "…" : t.common.save}
         </button>
         <button onClick={() => setEditing(false)} className="text-xs text-stone-400 hover:text-stone-600">
-          Cancel
+          {t.common.cancel}
         </button>
       </div>
     );
@@ -55,7 +57,7 @@ export function EmployeeStartDateEditor({
       onClick={() => setEditing(true)}
       className={`text-sm hover:underline ${currentDate ? "text-stone-700 hover:text-stone-900" : "text-amber-600 hover:text-amber-800 font-medium"}`}
     >
-      {currentDate ? new Date(currentDate).toLocaleDateString("lt-LT") : "Not set"}
+      {currentDate ? new Date(currentDate).toLocaleDateString(t.dateLocale) : t.adminEmployees.notSet}
     </button>
   );
 }

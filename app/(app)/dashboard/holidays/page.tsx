@@ -5,6 +5,8 @@ import { HolidayRequestForm } from "./holiday-request-form";
 import { CancelRequestButton } from "./cancel-request-button";
 import { computeLeaveBalance } from "@/lib/leave";
 import Link from "next/link";
+import { cookies } from "next/headers";
+import { getTranslations, type Translations } from "@/lib/i18n/translations";
 
 export default async function HolidaysPage() {
   const session = await auth();
@@ -15,15 +17,17 @@ export default async function HolidaysPage() {
   });
   if (!membership) redirect("/onboarding");
 
-  // Employment start date must be set before holidays can be used
+  const locale = (await cookies()).get("locale")?.value ?? "lt";
+  const t = getTranslations(locale);
+
   if (!membership.employmentStartDate) {
     return (
       <div className="p-4 sm:p-6 space-y-6 max-w-3xl">
-        <Link href="/dashboard" className="text-sm text-stone-400 hover:text-stone-600 transition-colors">← Home</Link>
-        <h1 className="text-2xl font-bold text-stone-900">Time Off</h1>
+        <Link href="/dashboard" className="text-sm text-stone-400 hover:text-stone-600 transition-colors">{t.common.backHome}</Link>
+        <h1 className="text-2xl font-bold text-stone-900">{t.timeOff.title}</h1>
         <div className="rounded-lg border border-amber-200 bg-amber-50 p-6 text-center space-y-2">
-          <p className="text-sm font-medium text-amber-800">Your employment details haven't been set up yet</p>
-          <p className="text-xs text-amber-600">Ask your manager or admin to set your employment start date before you can request time off.</p>
+          <p className="text-sm font-medium text-amber-800">{t.timeOff.notSetup}</p>
+          <p className="text-xs text-amber-600">{t.timeOff.notSetupDesc}</p>
         </div>
       </div>
     );
@@ -53,16 +57,16 @@ export default async function HolidaysPage() {
 
   return (
     <div className="p-4 sm:p-6 space-y-6 max-w-3xl">
-      <Link href="/dashboard" className="text-sm text-stone-400 hover:text-stone-600 transition-colors">← Home</Link>
-      <h1 className="text-2xl font-bold text-stone-900">Time Off</h1>
+      <Link href="/dashboard" className="text-sm text-stone-400 hover:text-stone-600 transition-colors">{t.common.backHome}</Link>
+      <h1 className="text-2xl font-bold text-stone-900">{t.timeOff.title}</h1>
 
       {/* Balance banner */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
-          { label: "Entitlement", value: balance.entitlement, unit: "days", color: "text-stone-700" },
-          { label: balance.carryoverDays > 0 ? `+ ${balance.carryoverDays}d carried over` : "Carried over", value: balance.carryoverDays, unit: "days", color: balance.carryoverDays > 0 ? "text-blue-700" : "text-stone-400" },
-          { label: "Used", value: balance.usedDays, unit: "days", color: "text-stone-700" },
-          { label: "Remaining", value: balance.remainingDays, unit: "days", color: balance.remainingDays <= 3 ? "text-red-600" : "text-green-700" },
+          { label: t.timeOff.entitlement, value: balance.entitlement, unit: "days", color: "text-stone-700" },
+          { label: t.timeOff.carriedOver(balance.carryoverDays), value: balance.carryoverDays, unit: "days", color: balance.carryoverDays > 0 ? "text-blue-700" : "text-stone-400" },
+          { label: t.timeOff.used, value: balance.usedDays, unit: "days", color: "text-stone-700" },
+          { label: t.timeOff.remaining, value: balance.remainingDays, unit: "days", color: balance.remainingDays <= 3 ? "text-red-600" : "text-green-700" },
         ].map((s) => (
           <div key={s.label} className="rounded-lg border border-stone-200 bg-white shadow-sm p-3 text-center">
             <p className={`text-2xl font-bold tabular-nums ${s.color}`}>{s.value}</p>
@@ -72,17 +76,17 @@ export default async function HolidaysPage() {
       </div>
 
       {balance.pendingDays > 0 && (
-        <p className="text-xs text-amber-600">{balance.pendingDays} day{balance.pendingDays !== 1 ? "s" : ""} pending approval not yet deducted from remaining.</p>
+        <p className="text-xs text-amber-600">{t.timeOff.pendingNote(balance.pendingDays)}</p>
       )}
 
       <HolidayRequestForm companyId={membership.companyId} balance={balance} />
 
       <div className="rounded-lg border border-stone-200 bg-white shadow-sm overflow-hidden">
         <div className="px-4 py-3 border-b border-stone-100">
-          <h2 className="font-semibold text-sm text-stone-900">Your requests</h2>
+          <h2 className="font-semibold text-sm text-stone-900">{t.timeOff.yourRequests}</h2>
         </div>
         {allRequests.length === 0 ? (
-          <p className="p-4 text-sm text-stone-400">No time off requests yet</p>
+          <p className="p-4 text-sm text-stone-400">{t.timeOff.noRequests}</p>
         ) : (
           <div className="divide-y divide-stone-100">
             {allRequests.map((r) => (
@@ -90,22 +94,22 @@ export default async function HolidaysPage() {
                 <div>
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-sm font-medium text-stone-800">
-                      {new Date(r.startDate).toLocaleDateString("lt-LT")}
+                      {new Date(r.startDate).toLocaleDateString(t.dateLocale)}
                       {r.startDate.toISOString().slice(0, 10) !== r.endDate.toISOString().slice(0, 10) && (
-                        <> — {new Date(r.endDate).toLocaleDateString("lt-LT")}</>
+                        <> — {new Date(r.endDate).toLocaleDateString(t.dateLocale)}</>
                       )}
                     </span>
                     <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
                       r.type === "PAID" ? "bg-stone-100 text-stone-600" : "bg-orange-50 text-orange-700"
                     }`}>
-                      {r.type === "PAID" ? "Paid" : "Unpaid"}
+                      {r.type === "PAID" ? t.timeOff.paid : t.timeOff.unpaid}
                     </span>
                   </div>
                   {r.reason && <p className="text-xs text-stone-400 mt-0.5">{r.reason}</p>}
                 </div>
                 <div className="flex items-center gap-3 shrink-0">
                   {r.status === "PENDING" && <CancelRequestButton requestId={r.id} />}
-                  <StatusBadge status={r.status} />
+                  <StatusBadge status={r.status} t={t} />
                 </div>
               </div>
             ))}
@@ -116,7 +120,7 @@ export default async function HolidaysPage() {
   );
 }
 
-function StatusBadge({ status }: { status: string }) {
+function StatusBadge({ status, t }: { status: string; t: Translations }) {
   const styles: Record<string, string> = {
     PENDING: "bg-amber-50 text-amber-700",
     APPROVED: "bg-green-50 text-green-700",
@@ -124,7 +128,7 @@ function StatusBadge({ status }: { status: string }) {
   };
   return (
     <span className={`shrink-0 inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${styles[status] ?? ""}`}>
-      {status.charAt(0) + status.slice(1).toLowerCase()}
+      {t.common.statusLabel(status)}
     </span>
   );
 }

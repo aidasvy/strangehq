@@ -4,6 +4,8 @@ import { redirect } from "next/navigation";
 import { ScheduleBuilder } from "./schedule-builder";
 import { RosterView } from "./roster-view";
 import Link from "next/link";
+import { cookies } from "next/headers";
+import { getTranslations } from "@/lib/i18n/translations";
 
 function getWeekStart(offset = 0): Date {
   const now = new Date();
@@ -35,6 +37,9 @@ export default async function AdminSchedulePage({
   });
   if (!membership) redirect("/onboarding");
 
+  const locale = (await cookies()).get("locale")?.value ?? "lt";
+  const t = getTranslations(locale);
+
   const companyId = membership.companyId;
   const { locationId: qLocationId, week, view } = await searchParams;
   const activeView = view === "roster" ? "roster" : "builder";
@@ -57,11 +62,11 @@ export default async function AdminSchedulePage({
   if (locations.length === 0) {
     return (
       <div className="p-6 space-y-4">
-        <h1 className="text-2xl font-bold text-stone-900">Schedule Builder</h1>
+        <h1 className="text-2xl font-bold text-stone-900">{t.adminSchedule.title}</h1>
         <p className="text-stone-500 text-sm">
-          You need at least one location to build a schedule.{" "}
+          {t.adminSchedule.noLocation}{" "}
           <Link href="/admin/locations" className="text-stone-900 underline">
-            Create a location →
+            {t.adminSchedule.createLocation}
           </Link>
         </p>
       </div>
@@ -108,7 +113,6 @@ export default async function AdminSchedulePage({
     }),
   ]);
 
-  // Compute per-user monthly stats
   const approvedHoursByUser: Record<string, number> = {};
   monthlyApproved.forEach((e) => {
     if (!e.clockOut) return;
@@ -143,7 +147,6 @@ export default async function AdminSchedulePage({
     endTime: s.endTime,
   })) ?? [];
 
-  // All shifts for this week across all locations (published + draft from OTHER locations)
   const [allWeekShifts, crossLocationRaw] = await Promise.all([
     db.scheduleShift.findMany({
       where: {
@@ -155,7 +158,6 @@ export default async function AdminSchedulePage({
       },
       orderBy: [{ date: "asc" }, { startTime: "asc" }],
     }),
-    // Cross-location: any shifts from other locations this week (draft or published)
     db.scheduleShift.findMany({
       where: {
         schedule: { companyId, locationId: { not: activeLocationId } },
@@ -183,35 +185,33 @@ export default async function AdminSchedulePage({
     locationName: s.schedule.location.name,
   }));
 
-  const weekLabels = ["This week", "Next week", "In 2 weeks", "In 3 weeks"];
-
   return (
     <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
-      <Link href="/admin" className="text-sm text-stone-400 hover:text-stone-600 transition-colors">← Overview</Link>
+      <Link href="/admin" className="text-sm text-stone-400 hover:text-stone-600 transition-colors">{t.common.backOverview}</Link>
       <div className="space-y-3">
         <div>
-          <h1 className="text-2xl font-bold text-stone-900">Schedule</h1>
+          <h1 className="text-2xl font-bold text-stone-900">{t.adminSchedule.title}</h1>
           <p className="text-sm text-stone-500">
-            Week of {weekStart.toLocaleDateString("lt-LT", { day: "numeric", month: "long", year: "numeric" })}
+            {t.adminSchedule.weekOf} {weekStart.toLocaleDateString(t.dateLocale, { day: "numeric", month: "long", year: "numeric" })}
           </p>
         </div>
 
         <div className="flex gap-x-6 gap-y-3 flex-wrap items-end">
           {/* View toggle */}
           <div className="space-y-1.5">
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-stone-400">View</p>
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-stone-400">{t.adminSchedule.viewLabel}</p>
             <div className="flex rounded-lg border border-stone-200 overflow-hidden text-xs font-medium">
               <Link
                 href={`/admin/schedule?locationId=${activeLocationId}&week=${weekOffset}&view=builder`}
                 className={`px-3 py-1.5 transition-colors ${activeView === "builder" ? "bg-stone-800 text-white" : "text-stone-600 hover:bg-stone-50"}`}
               >
-                Builder
+                {t.adminSchedule.builder}
               </Link>
               <Link
                 href={`/admin/schedule?locationId=${activeLocationId}&week=${weekOffset}&view=roster`}
                 className={`px-3 py-1.5 border-l border-stone-200 transition-colors ${activeView === "roster" ? "bg-stone-800 text-white" : "text-stone-600 hover:bg-stone-50"}`}
               >
-                Roster
+                {t.adminSchedule.roster}
               </Link>
             </div>
           </div>
@@ -221,7 +221,7 @@ export default async function AdminSchedulePage({
 
           {/* Week selector */}
           <div className="space-y-1.5">
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-stone-400">Week</p>
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-stone-400">{t.adminSchedule.weekLabel}</p>
             <div className="flex gap-1 flex-wrap">
               {[0, 1, 2, 3].map((w) => (
                 <Link
@@ -233,7 +233,7 @@ export default async function AdminSchedulePage({
                       : "border border-stone-300 text-stone-600 hover:bg-stone-50"
                   }`}
                 >
-                  {weekLabels[w]}
+                  {t.adminSchedule.weekLabels[w]}
                 </Link>
               ))}
             </div>
@@ -242,10 +242,9 @@ export default async function AdminSchedulePage({
           {/* Location selector */}
           {locations.length > 1 && (
             <>
-              {/* Divider */}
               <div className="hidden sm:block self-stretch w-px bg-stone-200 my-0.5" />
               <div className="space-y-1.5">
-                <p className="text-[10px] font-semibold uppercase tracking-widest text-stone-400">Location</p>
+                <p className="text-[10px] font-semibold uppercase tracking-widest text-stone-400">{t.adminSchedule.locationLabel}</p>
                 <div className="flex gap-1 flex-wrap">
                   {locations.map((loc) => (
                     <Link

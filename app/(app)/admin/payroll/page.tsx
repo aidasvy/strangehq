@@ -5,6 +5,8 @@ import { DEFAULT_PAYROLL_CONFIG, calculateHourBreakdown } from "@/lib/payroll";
 import Link from "next/link";
 import { PayrollCalculator } from "./payroll-calculator";
 import { PayrollSummary } from "./payroll-summary";
+import { cookies } from "next/headers";
+import { getTranslations } from "@/lib/i18n/translations";
 
 function getMonthRange(year: number, month: number) {
   const start = new Date(year, month - 1, 1);
@@ -26,6 +28,9 @@ export default async function PayrollPage({
   });
   if (!membership) redirect("/onboarding");
   if (membership.role !== "ADMIN") redirect("/admin");
+
+  const locale = (await cookies()).get("locale")?.value ?? "lt";
+  const t = getTranslations(locale);
 
   const sp = await searchParams;
   const now = new Date();
@@ -99,25 +104,25 @@ export default async function PayrollPage({
     };
   });
 
-  const monthLabel = new Date(year, month - 1).toLocaleDateString("lt-LT", {
+  const monthLabel = new Date(year, month - 1).toLocaleDateString(t.dateLocale, {
     month: "long",
     year: "numeric",
   });
 
   return (
     <div className="p-6 space-y-8">
-      <Link href="/admin" className="text-sm text-stone-400 hover:text-stone-600 transition-colors">← Overview</Link>
+      <Link href="/admin" className="text-sm text-stone-400 hover:text-stone-600 transition-colors">{t.common.backOverview}</Link>
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-stone-900">Payroll</h1>
-          <p className="text-sm text-stone-500">Lithuanian GPM, Sodra, and NPD applied automatically</p>
+          <h1 className="text-2xl font-bold text-stone-900">{t.adminPayroll.title}</h1>
+          <p className="text-sm text-stone-500">{t.adminPayroll.subtitle}</p>
         </div>
         <a
           href={`/api/admin/export/payroll?year=${year}&month=${month}`}
           download
           className="shrink-0 rounded-lg border border-stone-200 bg-white px-4 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50 shadow-sm transition-colors"
         >
-          Export CSV
+          {t.common.exportCsv}
         </a>
       </div>
 
@@ -130,7 +135,7 @@ export default async function PayrollPage({
       />
 
       <div>
-        <h2 className="text-lg font-semibold text-stone-900 mb-4">Manual calculator</h2>
+        <h2 className="text-lg font-semibold text-stone-900 mb-4">{t.adminPayroll.manualCalc}</h2>
         <PayrollCalculator config={config} employees={employeeOptions} />
       </div>
     </div>

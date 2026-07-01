@@ -2,13 +2,15 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useLocale } from "@/lib/i18n/context";
 
 export function CancelRequestButton({ requestId }: { requestId: string }) {
   const router = useRouter();
+  const { t } = useLocale();
   const [loading, setLoading] = useState(false);
 
   async function cancel() {
-    if (!confirm("Cancel this request?")) return;
+    if (!confirm(t.timeOff.cancelConfirm)) return;
     setLoading(true);
     await fetch(`/api/holidays/${requestId}`, { method: "DELETE" });
     setLoading(false);
@@ -21,7 +23,7 @@ export function CancelRequestButton({ requestId }: { requestId: string }) {
       disabled={loading}
       className="text-xs text-stone-400 hover:text-red-500 disabled:opacity-50 transition-colors"
     >
-      {loading ? "…" : "Cancel"}
+      {loading ? "…" : t.timeOff.cancel}
     </button>
   );
 }

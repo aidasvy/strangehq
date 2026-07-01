@@ -3,6 +3,8 @@ import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { AvailabilityForm } from "./availability-form";
 import Link from "next/link";
+import { cookies } from "next/headers";
+import { getTranslations } from "@/lib/i18n/translations";
 
 function getWeekStart(offsetWeeks: number): Date {
   const now = new Date();
@@ -27,6 +29,9 @@ export default async function AvailabilityPage({
   });
   if (!membership) redirect("/onboarding");
 
+  const locale = (await cookies()).get("locale")?.value ?? "lt";
+  const t = getTranslations(locale);
+
   const sp = await searchParams;
   const weekOffset = sp.week === "2" ? 2 : 1;
   const weekStart = getWeekStart(weekOffset);
@@ -41,22 +46,22 @@ export default async function AvailabilityPage({
     },
   });
 
-  const weekLabel = weekOffset === 1 ? "Next week" : "Week after next";
-  const weekDate = weekStart.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+  const weekLabel = weekOffset === 1 ? t.availability.nextWeek : t.availability.weekAfterNext;
+  const weekDate = weekStart.toLocaleDateString(t.dateLocale, { day: "numeric", month: "short" });
 
   return (
     <div className="p-6 space-y-6">
-      <Link href="/dashboard" className="text-sm text-stone-400 hover:text-stone-600 transition-colors">← Home</Link>
+      <Link href="/dashboard" className="text-sm text-stone-400 hover:text-stone-600 transition-colors">{t.common.backHome}</Link>
       <div>
-        <h1 className="text-2xl font-bold text-stone-900">Availability</h1>
-        <p className="text-sm text-stone-500">Let your manager know when you can work</p>
+        <h1 className="text-2xl font-bold text-stone-900">{t.availability.title}</h1>
+        <p className="text-sm text-stone-500">{t.availability.subtitle}</p>
       </div>
 
       {/* Week selector */}
       <div className="flex gap-2">
         {[
-          { label: "Next week", week: "1", offset: 1 },
-          { label: "Week after", week: "2", offset: 2 },
+          { label: t.availability.nextWeek, week: "1", offset: 1 },
+          { label: t.availability.weekAfter, week: "2", offset: 2 },
         ].map(({ label, week, offset }) => {
           const active = weekOffset === offset;
           const date = getWeekStart(offset);
@@ -72,7 +77,7 @@ export default async function AvailabilityPage({
             >
               {label}
               <span className="ml-1.5 text-xs font-normal opacity-60">
-                {date.toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
+                {date.toLocaleDateString(t.dateLocale, { day: "numeric", month: "short" })}
               </span>
             </Link>
           );

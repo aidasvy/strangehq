@@ -4,6 +4,8 @@ import { redirect } from "next/navigation";
 import { ClockControls } from "./clock-controls";
 import { RejectedEntryEditor } from "./rejected-entry-editor";
 import Link from "next/link";
+import { cookies } from "next/headers";
+import { getTranslations, type Translations } from "@/lib/i18n/translations";
 
 export default async function HoursPage() {
   const session = await auth();
@@ -13,6 +15,9 @@ export default async function HoursPage() {
 
   const membership = await db.companyMember.findFirst({ where: { userId } });
   if (!membership) redirect("/onboarding");
+
+  const locale = (await cookies()).get("locale")?.value ?? "lt";
+  const t = getTranslations(locale);
 
   const [openEntry, recentEntries, locations] = await Promise.all([
     db.timeEntry.findFirst({ where: { userId, clockOut: null } }),
@@ -29,8 +34,8 @@ export default async function HoursPage() {
 
   return (
     <div className="p-6 space-y-6">
-      <Link href="/dashboard" className="text-sm text-stone-400 hover:text-stone-600 transition-colors">← Home</Link>
-      <h1 className="text-2xl font-bold text-stone-900">Hours</h1>
+      <Link href="/dashboard" className="text-sm text-stone-400 hover:text-stone-600 transition-colors">{t.common.backHome}</Link>
+      <h1 className="text-2xl font-bold text-stone-900">{t.hours.title}</h1>
 
       <div className="max-w-2xl">
         <ClockControls
@@ -43,19 +48,19 @@ export default async function HoursPage() {
 
       <div className="rounded-lg border border-stone-200 bg-white shadow-sm overflow-hidden">
         <div className="px-4 py-3 border-b border-stone-100">
-          <h2 className="font-semibold text-sm text-stone-900">Recent entries</h2>
+          <h2 className="font-semibold text-sm text-stone-900">{t.hours.recentEntries}</h2>
         </div>
         {recentEntries.length === 0 ? (
-          <p className="p-4 text-sm text-stone-400">No time entries yet</p>
+          <p className="p-4 text-sm text-stone-400">{t.common.noTimeEntries}</p>
         ) : (
           <table className="w-full text-sm">
             <thead className="bg-stone-50">
               <tr>
-                <th className="px-4 py-2 text-left font-medium text-stone-500">Date</th>
-                <th className="px-4 py-2 text-left font-medium text-stone-500">Clock in</th>
-                <th className="px-4 py-2 text-left font-medium text-stone-500">Clock out</th>
-                <th className="px-4 py-2 text-left font-medium text-stone-500">Hours</th>
-                <th className="px-4 py-2 text-left font-medium text-stone-500">Status</th>
+                <th className="px-4 py-2 text-left font-medium text-stone-500">{t.common.date}</th>
+                <th className="px-4 py-2 text-left font-medium text-stone-500">{t.common.clockIn}</th>
+                <th className="px-4 py-2 text-left font-medium text-stone-500">{t.common.clockOut}</th>
+                <th className="px-4 py-2 text-left font-medium text-stone-500">{t.common.hours}</th>
+                <th className="px-4 py-2 text-left font-medium text-stone-500">{t.common.status}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-100">
@@ -66,13 +71,13 @@ export default async function HoursPage() {
                 return (
                   <tr key={entry.id} className="hover:bg-stone-50 transition-colors align-top">
                     <td className="px-4 py-3 text-stone-600">
-                      {entry.clockIn.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
+                      {entry.clockIn.toLocaleDateString(t.dateLocale, { day: "2-digit", month: "short", year: "numeric" })}
                     </td>
-                    <td className="px-4 py-3 text-stone-700">{fmt(entry.clockIn)}</td>
-                    <td className="px-4 py-3">{entry.clockOut ? fmt(entry.clockOut) : <span className="text-green-600 font-medium">Active</span>}</td>
+                    <td className="px-4 py-3 text-stone-700">{fmt(entry.clockIn, t.dateLocale)}</td>
+                    <td className="px-4 py-3">{entry.clockOut ? fmt(entry.clockOut, t.dateLocale) : <span className="text-green-600 font-medium">{t.common.active}</span>}</td>
                     <td className="px-4 py-3 text-stone-700">{hours}</td>
                     <td className="px-4 py-3">
-                      <StatusBadge status={entry.status} />
+                      <StatusBadge status={entry.status} t={t} />
                       {entry.status === "REJECTED" && entry.clockOut && (
                         <RejectedEntryEditor
                           entryId={entry.id}
@@ -92,11 +97,11 @@ export default async function HoursPage() {
   );
 }
 
-function fmt(d: Date) {
-  return d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+function fmt(d: Date, dateLocale: string) {
+  return d.toLocaleTimeString(dateLocale, { hour: "2-digit", minute: "2-digit" });
 }
 
-function StatusBadge({ status }: { status: string }) {
+function StatusBadge({ status, t }: { status: string; t: Translations }) {
   const styles: Record<string, string> = {
     PENDING: "bg-amber-50 text-amber-700",
     APPROVED: "bg-green-50 text-green-700",
@@ -104,7 +109,7 @@ function StatusBadge({ status }: { status: string }) {
   };
   return (
     <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${styles[status] ?? ""}`}>
-      {status.charAt(0) + status.slice(1).toLowerCase()}
+      {t.common.statusLabel(status)}
     </span>
   );
 }

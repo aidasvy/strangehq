@@ -31,12 +31,12 @@ export function SidebarNav({ companyName, userName, userEmail, isAdmin, isFullAd
   const adminLinks = [
     { href: "/admin", label: t.nav.home, exact: true },
     { href: "/admin/schedule", label: t.nav.schedule },
-    { href: "/admin/time-entries", label: "Laiko įrašai" },
+    { href: "/admin/time-entries", label: t.adminTimeEntries.title },
     { href: "/admin/holidays", label: t.nav.holidays },
-    { href: "/admin/employees", label: "Darbuotojai" },
-    { href: "/admin/locations", label: "Vietos" },
-    ...(isFullAdmin ? [{ href: "/admin/payroll", label: "Payroll" }] : []),
-    { href: "/admin/settings", label: "Nustatymai" },
+    { href: "/admin/employees", label: t.adminEmployees.title },
+    { href: "/admin/locations", label: t.adminLocations.title },
+    ...(isFullAdmin ? [{ href: "/admin/payroll", label: t.adminPayroll.title }] : []),
+    { href: "/admin/settings", label: t.adminSettings.title },
   ];
 
   // Bottom tab items for mobile (most-used pages)

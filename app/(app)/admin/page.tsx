@@ -2,6 +2,8 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { cookies } from "next/headers";
+import { getTranslations } from "@/lib/i18n/translations";
 
 export default async function AdminPage() {
   const session = await auth();
@@ -12,6 +14,9 @@ export default async function AdminPage() {
     include: { company: true },
   });
   if (!membership) redirect("/onboarding");
+
+  const locale = (await cookies()).get("locale")?.value ?? "lt";
+  const t = getTranslations(locale);
 
   const companyId = membership.companyId;
 
@@ -28,29 +33,29 @@ export default async function AdminPage() {
   ]);
 
   const stats = [
-    { label: "Pending approvals", value: pendingEntries, href: "/admin/time-entries", urgent: pendingEntries > 0 },
-    { label: "Holiday requests", value: pendingHolidays, href: "/admin/holidays", urgent: pendingHolidays > 0 },
-    { label: "Team members", value: employeeCount, href: "/admin/employees", urgent: false },
-    { label: "Locations", value: locationCount, href: "/admin/locations", urgent: false },
+    { label: t.adminOverview.pendingApprovals, value: pendingEntries, href: "/admin/time-entries", urgent: pendingEntries > 0 },
+    { label: t.adminOverview.holidayRequests, value: pendingHolidays, href: "/admin/holidays", urgent: pendingHolidays > 0 },
+    { label: t.adminOverview.teamMembers, value: employeeCount, href: "/admin/employees", urgent: false },
+    { label: t.adminOverview.locations, value: locationCount, href: "/admin/locations", urgent: false },
   ];
 
   return (
     <div className="p-6 space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-stone-900">{membership.company.name}</h1>
-        <p className="text-sm text-stone-500">Admin overview</p>
+        <p className="text-sm text-stone-500">{t.adminOverview.subtitle}</p>
       </div>
 
       {/* Live staff status */}
       <div className="rounded-lg border border-stone-200 bg-white shadow-sm p-4 space-y-3">
         <div className="flex items-center justify-between">
-          <p className="text-sm font-semibold text-stone-700">Who&apos;s working now</p>
+          <p className="text-sm font-semibold text-stone-700">{t.adminOverview.whoWorking}</p>
           <Link href="/admin/time-entries" className="text-xs text-stone-400 hover:text-stone-600">
-            View all →
+            {t.adminOverview.viewAll}
           </Link>
         </div>
         {activeEntries.length === 0 ? (
-          <p className="text-sm text-stone-400">Nobody is clocked in right now</p>
+          <p className="text-sm text-stone-400">{t.adminOverview.nobodyClocked}</p>
         ) : (
           <div className="flex flex-wrap gap-2">
             {activeEntries.map((e) => {
@@ -63,7 +68,7 @@ export default async function AdminPage() {
                   <span className={`h-1.5 w-1.5 rounded-full ${stale ? "bg-amber-400 animate-pulse" : "bg-green-500 animate-pulse"}`} />
                   {e.user.name ?? e.user.email}
                   <span className={`font-normal ml-0.5 ${stale ? "text-amber-600" : "text-green-600"}`}>{h}h {String(m).padStart(2, "0")}m</span>
-                  {stale && <span className="text-amber-500">· may have forgotten to clock out</span>}
+                  {stale && <span className="text-amber-500">{t.adminOverview.mayForgot}</span>}
                 </span>
               );
             })}
@@ -91,12 +96,12 @@ export default async function AdminPage() {
 
       {/* Quick actions */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <QuickAction href="/admin/schedule" title="Schedule builder" desc="Create and publish the weekly rota" />
-        <QuickAction href="/admin/payroll" title="Payroll" desc="Monthly salary summary with tax breakdown" />
-        <QuickAction href="/admin/time-entries" title="Approve time entries" desc="Review and approve submitted hours" />
-        <QuickAction href="/admin/holidays" title="Holiday requests" desc="Approve or reject time-off requests" />
-        <QuickAction href="/admin/locations" title="Locations & staffing" desc="Manage venues and minimum staff requirements" />
-        <QuickAction href="/admin/settings" title="Settings & invite codes" desc="Generate codes to onboard new employees" />
+        <QuickAction href="/admin/schedule" title={t.adminOverview.scheduleBuilder} desc={t.adminOverview.scheduleDesc} />
+        <QuickAction href="/admin/payroll" title={t.adminOverview.payroll} desc={t.adminOverview.payrollDesc} />
+        <QuickAction href="/admin/time-entries" title={t.adminOverview.approveEntries} desc={t.adminOverview.approveEntriesDesc} />
+        <QuickAction href="/admin/holidays" title={t.adminOverview.holidayRequests} desc={t.adminOverview.holidayRequestsDesc} />
+        <QuickAction href="/admin/locations" title={t.adminOverview.locationsStaffing} desc={t.adminOverview.locationsDesc} />
+        <QuickAction href="/admin/settings" title={t.adminOverview.settingsInvite} desc={t.adminOverview.settingsDesc} />
       </div>
     </div>
   );

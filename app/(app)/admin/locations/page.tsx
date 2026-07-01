@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useLocale } from "@/lib/i18n/context";
 
 interface Location {
   id: string;
@@ -19,6 +20,7 @@ export default function LocationsPage() {
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
   const [error, setError] = useState("");
+  const { t } = useLocale();
 
   async function load() {
     const res = await fetch("/api/admin/locations");
@@ -52,7 +54,7 @@ export default function LocationsPage() {
   }
 
   async function remove(id: string) {
-    if (!confirm("Delete this location? This cannot be undone.")) return;
+    if (!confirm(t.adminLocations.deleteConfirm)) return;
     const res = await fetch("/api/admin/locations", {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
@@ -62,31 +64,31 @@ export default function LocationsPage() {
       load();
     } else {
       const data = await res.json();
-      alert(data.error ?? "Failed to delete");
+      alert(data.error ?? t.adminLocations.deleteFailed);
     }
   }
 
   return (
     <div className="p-6 space-y-6">
-      <Link href="/admin" className="text-sm text-stone-400 hover:text-stone-600 transition-colors">← Overview</Link>
+      <Link href="/admin" className="text-sm text-stone-400 hover:text-stone-600 transition-colors">{t.common.backOverview}</Link>
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-stone-900">Locations</h1>
-          <p className="text-sm text-stone-500">Manage your venues and per-location staffing requirements</p>
+          <h1 className="text-2xl font-bold text-stone-900">{t.adminLocations.title}</h1>
+          <p className="text-sm text-stone-500">{t.adminLocations.subtitle}</p>
         </div>
         <button
           onClick={() => setShowForm(!showForm)}
           className="rounded-lg bg-stone-800 px-4 py-2 text-sm font-medium text-white hover:bg-stone-700 transition-colors"
         >
-          + Add location
+          {t.adminLocations.addLocation}
         </button>
       </div>
 
       {showForm && (
         <form onSubmit={create} className="rounded-lg border border-stone-200 bg-white shadow-sm p-4 space-y-4 max-w-md">
-          <h2 className="font-semibold text-stone-900">New location</h2>
+          <h2 className="font-semibold text-stone-900">{t.adminLocations.newLocation}</h2>
           <div>
-            <label className="block text-sm font-medium text-stone-700 mb-1">Name *</label>
+            <label className="block text-sm font-medium text-stone-700 mb-1">{t.adminLocations.nameLabel}</label>
             <input
               type="text"
               value={name}
@@ -97,7 +99,7 @@ export default function LocationsPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-stone-700 mb-1">Address (optional)</label>
+            <label className="block text-sm font-medium text-stone-700 mb-1">{t.adminLocations.addressLabel}</label>
             <input
               type="text"
               value={address}
@@ -113,24 +115,24 @@ export default function LocationsPage() {
               disabled={creating}
               className="rounded-lg bg-stone-800 px-4 py-2 text-sm font-medium text-white hover:bg-stone-700 disabled:opacity-50 transition-colors"
             >
-              {creating ? "Creating…" : "Create"}
+              {creating ? t.adminLocations.creating : t.adminLocations.create}
             </button>
             <button
               type="button"
               onClick={() => { setShowForm(false); setError(""); }}
               className="rounded-lg border border-stone-300 px-4 py-2 text-sm font-medium text-stone-600 hover:bg-stone-50 transition-colors"
             >
-              Cancel
+              {t.common.cancel}
             </button>
           </div>
         </form>
       )}
 
       {loading ? (
-        <p className="text-stone-400 text-sm">Loading…</p>
+        <p className="text-stone-400 text-sm">{t.common.loading}</p>
       ) : locations.length === 0 ? (
         <div className="rounded-lg border border-stone-200 bg-white shadow-sm p-8 text-center">
-          <p className="text-stone-400 text-sm">No locations yet. Add your first venue above.</p>
+          <p className="text-stone-400 text-sm">{t.adminLocations.noLocations}</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -145,14 +147,14 @@ export default function LocationsPage() {
                   href={`/admin/locations/${loc.id}/staffing`}
                   className="rounded-md px-3 py-1.5 text-xs font-medium border border-stone-300 text-stone-600 hover:bg-stone-50 transition-colors"
                 >
-                  Staffing rules
+                  {t.adminLocations.staffingRules}
                 </Link>
                 {locations.length > 1 && (
                   <button
                     onClick={() => remove(loc.id)}
                     className="rounded-md px-3 py-1.5 text-xs font-medium text-red-500 hover:text-red-700 hover:bg-red-50 transition-colors border border-transparent hover:border-red-100"
                   >
-                    Delete
+                    {t.common.delete}
                   </button>
                 )}
               </div>

@@ -6,6 +6,8 @@ import Link from "next/link";
 import { TimeEntryEditor } from "./time-entry-editor";
 import { ManualEntryForm } from "./manual-entry-form";
 import { BulkApproveButton } from "./bulk-approve-button";
+import { cookies } from "next/headers";
+import { getTranslations, type Translations } from "@/lib/i18n/translations";
 
 export default async function TimeEntriesPage() {
   const session = await auth();
@@ -15,6 +17,9 @@ export default async function TimeEntriesPage() {
     where: { userId: session.user.id },
   });
   if (!membership) redirect("/onboarding");
+
+  const locale = (await cookies()).get("locale")?.value ?? "lt";
+  const t = getTranslations(locale);
 
   const [entries, members] = await Promise.all([
     db.timeEntry.findMany({
@@ -43,13 +48,13 @@ export default async function TimeEntriesPage() {
 
   return (
     <div className="p-6 space-y-6">
-      <Link href="/admin" className="text-sm text-stone-400 hover:text-stone-600 transition-colors">← Overview</Link>
+      <Link href="/admin" className="text-sm text-stone-400 hover:text-stone-600 transition-colors">{t.common.backOverview}</Link>
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-stone-900">Time Entries</h1>
+          <h1 className="text-2xl font-bold text-stone-900">{t.adminTimeEntries.title}</h1>
           {activeEntries.length > 0 && (
             <p className="text-sm text-green-700 mt-0.5">
-              {activeEntries.length} {activeEntries.length === 1 ? "person" : "people"} currently clocked in
+              {t.adminTimeEntries.currentlyClocked(activeEntries.length)}
             </p>
           )}
         </div>
@@ -60,7 +65,7 @@ export default async function TimeEntriesPage() {
             download
             className="rounded-lg border border-stone-200 bg-white px-4 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50 shadow-sm transition-colors"
           >
-            Export CSV
+            {t.common.exportCsv}
           </a>
           <ManualEntryForm companyId={membership.companyId} employees={employees} />
         </div>
@@ -70,9 +75,12 @@ export default async function TimeEntriesPage() {
         <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
           <span className="text-amber-500 mt-0.5">⚠️</span>
           <div>
-            <p className="text-sm font-medium text-amber-800">Stale clock-ins</p>
+            <p className="text-sm font-medium text-amber-800">{t.adminTimeEntries.staleClockIns}</p>
             <p className="text-xs text-amber-700 mt-0.5">
-              {staleEntries.map((e) => e.user.name ?? e.user.email).join(", ")} {staleEntries.length === 1 ? "has" : "have"} been clocked in for over 12 hours — they may have forgotten to clock out.
+              {t.adminTimeEntries.staleDesc(
+                staleEntries.map((e) => e.user.name ?? e.user.email).join(", "),
+                staleEntries.length === 1
+              )}
             </p>
           </div>
         </div>
@@ -80,12 +88,12 @@ export default async function TimeEntriesPage() {
 
       {activeEntries.length > 0 && (
         <div className="rounded-lg border border-green-200 bg-green-50 p-4 space-y-2">
-          <p className="text-xs font-semibold text-green-800 uppercase tracking-wider">Currently working</p>
+          <p className="text-xs font-semibold text-green-800 uppercase tracking-wider">{t.adminTimeEntries.currentlyWorking}</p>
           <div className="flex flex-wrap gap-2">
             {activeEntries.map((e) => (
               <span key={e.id} className="inline-flex items-center gap-1.5 rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800">
                 <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
-                {e.user.name ?? e.user.email} · since {e.clockIn.toLocaleTimeString("lt-LT", { hour: "2-digit", minute: "2-digit" })}
+                {e.user.name ?? e.user.email} · {t.common.since} {e.clockIn.toLocaleTimeString(t.dateLocale, { hour: "2-digit", minute: "2-digit" })}
               </span>
             ))}
           </div>
@@ -94,18 +102,18 @@ export default async function TimeEntriesPage() {
 
       <div className="rounded-lg border border-stone-200 bg-white shadow-sm overflow-hidden">
         {entries.length === 0 ? (
-          <p className="p-4 text-sm text-stone-400">No time entries yet</p>
+          <p className="p-4 text-sm text-stone-400">{t.common.noTimeEntries}</p>
         ) : (
           <table className="w-full text-sm">
             <thead className="bg-stone-50">
               <tr>
-                <th className="px-4 py-2 text-left font-medium text-stone-500">Employee</th>
-                <th className="px-4 py-2 text-left font-medium text-stone-500">Date</th>
-                <th className="px-4 py-2 text-left font-medium text-stone-500">Clock in</th>
-                <th className="px-4 py-2 text-left font-medium text-stone-500">Clock out</th>
-                <th className="px-4 py-2 text-left font-medium text-stone-500">Hours</th>
-                <th className="px-4 py-2 text-left font-medium text-stone-500">Status</th>
-                <th className="px-4 py-2 text-left font-medium text-stone-500">Actions</th>
+                <th className="px-4 py-2 text-left font-medium text-stone-500">{t.common.employee}</th>
+                <th className="px-4 py-2 text-left font-medium text-stone-500">{t.common.date}</th>
+                <th className="px-4 py-2 text-left font-medium text-stone-500">{t.common.clockIn}</th>
+                <th className="px-4 py-2 text-left font-medium text-stone-500">{t.common.clockOut}</th>
+                <th className="px-4 py-2 text-left font-medium text-stone-500">{t.common.hours}</th>
+                <th className="px-4 py-2 text-left font-medium text-stone-500">{t.common.status}</th>
+                <th className="px-4 py-2 text-left font-medium text-stone-500">{t.common.actions}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-100">
@@ -120,13 +128,13 @@ export default async function TimeEntriesPage() {
                       <p className="text-xs text-stone-400">{e.user.email}</p>
                     </td>
                     <td className="px-4 py-3 text-stone-600">
-                      {e.clockIn.toLocaleDateString("lt-LT")}
+                      {e.clockIn.toLocaleDateString(t.dateLocale)}
                     </td>
-                    <td className="px-4 py-3 text-stone-700">{fmt(e.clockIn)}</td>
-                    <td className="px-4 py-3">{e.clockOut ? fmt(e.clockOut) : <span className="text-green-600">Active</span>}</td>
+                    <td className="px-4 py-3 text-stone-700">{fmt(e.clockIn, t.dateLocale)}</td>
+                    <td className="px-4 py-3">{e.clockOut ? fmt(e.clockOut, t.dateLocale) : <span className="text-green-600">{t.common.active}</span>}</td>
                     <td className="px-4 py-3 text-stone-700">{hours}</td>
                     <td className="px-4 py-3">
-                      <StatusBadge status={e.status} />
+                      <StatusBadge status={e.status} t={t} />
                     </td>
                     <td className="px-4 py-3 space-y-2">
                       {e.status === "PENDING" && e.clockOut && (
@@ -149,11 +157,11 @@ export default async function TimeEntriesPage() {
   );
 }
 
-function fmt(d: Date) {
-  return d.toLocaleTimeString("lt-LT", { hour: "2-digit", minute: "2-digit" });
+function fmt(d: Date, dateLocale: string) {
+  return d.toLocaleTimeString(dateLocale, { hour: "2-digit", minute: "2-digit" });
 }
 
-function StatusBadge({ status }: { status: string }) {
+function StatusBadge({ status, t }: { status: string; t: Translations }) {
   const styles: Record<string, string> = {
     PENDING: "bg-amber-50 text-amber-700",
     APPROVED: "bg-green-50 text-green-700",
@@ -161,7 +169,7 @@ function StatusBadge({ status }: { status: string }) {
   };
   return (
     <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${styles[status] ?? ""}`}>
-      {status.charAt(0) + status.slice(1).toLowerCase()}
+      {t.common.statusLabel(status)}
     </span>
   );
 }

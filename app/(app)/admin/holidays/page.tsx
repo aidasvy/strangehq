@@ -5,6 +5,8 @@ import { HolidayApproveButtons } from "./holiday-approve-buttons";
 import { computeLeaveBalance } from "@/lib/leave";
 import { countWorkingDays } from "@/lib/leave";
 import Link from "next/link";
+import { cookies } from "next/headers";
+import { getTranslations, type Translations } from "@/lib/i18n/translations";
 
 export default async function AdminHolidaysPage() {
   const session = await auth();
@@ -14,6 +16,9 @@ export default async function AdminHolidaysPage() {
     where: { userId: session.user.id },
   });
   if (!membership) redirect("/onboarding");
+
+  const locale = (await cookies()).get("locale")?.value ?? "lt";
+  const t = getTranslations(locale);
 
   const year = new Date().getFullYear();
 
@@ -29,7 +34,6 @@ export default async function AdminHolidaysPage() {
     }),
   ]);
 
-  // Compute balance per member (all requests, no year filter — computeLeaveBalance handles it)
   const balanceByUser: Record<string, ReturnType<typeof computeLeaveBalance>> = {};
   members.forEach((m) => {
     const memberRequests = requests.filter((r) => r.userId === m.userId);
@@ -47,12 +51,12 @@ export default async function AdminHolidaysPage() {
 
   return (
     <div className="p-4 sm:p-6 space-y-6">
-      <Link href="/admin" className="text-sm text-stone-400 hover:text-stone-600 transition-colors">← Overview</Link>
-      <h1 className="text-2xl font-bold text-stone-900">Holiday Requests</h1>
+      <Link href="/admin" className="text-sm text-stone-400 hover:text-stone-600 transition-colors">{t.common.backOverview}</Link>
+      <h1 className="text-2xl font-bold text-stone-900">{t.adminHolidays.title}</h1>
 
       {/* Leave balance summary per employee */}
       <div>
-        <h2 className="text-sm font-semibold text-stone-700 mb-2">Leave balances — {year}</h2>
+        <h2 className="text-sm font-semibold text-stone-700 mb-2">{t.adminHolidays.leaveBalances} — {year}</h2>
         <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
           {members.map((m) => {
             const b = balanceByUser[m.userId];
@@ -60,10 +64,10 @@ export default async function AdminHolidaysPage() {
               <div key={m.userId} className="rounded-lg border border-stone-200 bg-white shadow-sm px-4 py-3">
                 <p className="text-sm font-medium text-stone-800">{m.user.name ?? m.user.email}</p>
                 <div className="flex gap-4 mt-2 text-xs">
-                  <span className="text-stone-500">Entitlement: <strong className="text-stone-800">{b.entitlement}d</strong></span>
-                  <span className="text-stone-500">Used: <strong className="text-stone-800">{b.usedDays}d</strong></span>
+                  <span className="text-stone-500">{t.adminHolidays.entitlement} <strong className="text-stone-800">{b.entitlement}d</strong></span>
+                  <span className="text-stone-500">{t.adminHolidays.used} <strong className="text-stone-800">{b.usedDays}d</strong></span>
                   <span className={b.remainingDays <= 2 ? "text-red-600 font-semibold" : "text-green-700"}>
-                    Left: <strong>{b.remainingDays}d</strong>
+                    {t.adminHolidays.left} <strong>{b.remainingDays}d</strong>
                   </span>
                 </div>
               </div>
@@ -72,25 +76,23 @@ export default async function AdminHolidaysPage() {
         </div>
       </div>
 
-      {/* Pending requests */}
       {pending.length > 0 && (
         <div>
-          <h2 className="text-sm font-semibold text-stone-700 mb-2">Pending approval</h2>
-          <RequestTable requests={pending} balanceByUser={balanceByUser} showActions />
+          <h2 className="text-sm font-semibold text-stone-700 mb-2">{t.adminHolidays.pendingApproval}</h2>
+          <RequestTable requests={pending} balanceByUser={balanceByUser} showActions t={t} />
         </div>
       )}
 
-      {/* Past requests */}
       {rest.length > 0 && (
         <div>
-          <h2 className="text-sm font-semibold text-stone-700 mb-2">History</h2>
-          <RequestTable requests={rest} balanceByUser={balanceByUser} showActions={false} />
+          <h2 className="text-sm font-semibold text-stone-700 mb-2">{t.adminHolidays.history}</h2>
+          <RequestTable requests={rest} balanceByUser={balanceByUser} showActions={false} t={t} />
         </div>
       )}
 
       {requests.length === 0 && (
         <div className="rounded-lg border border-stone-200 bg-white shadow-sm p-8 text-center text-sm text-stone-400">
-          No holiday requests yet
+          {t.adminHolidays.noRequests}
         </div>
       )}
     </div>
@@ -101,6 +103,7 @@ function RequestTable({
   requests,
   balanceByUser,
   showActions,
+  t,
 }: {
   requests: Array<{
     id: string;
@@ -114,6 +117,7 @@ function RequestTable({
   }>;
   balanceByUser: Record<string, { remainingDays: number; entitlement: number; usedDays: number }>;
   showActions: boolean;
+  t: Translations;
 }) {
   return (
     <div className="rounded-lg border border-stone-200 bg-white shadow-sm overflow-hidden">
@@ -129,18 +133,18 @@ function RequestTable({
                   <p className="font-medium text-stone-900 text-sm">{r.user.name ?? "—"}</p>
                   <p className="text-xs text-stone-400">{r.user.email}</p>
                 </div>
-                <StatusBadge status={r.status} />
+                <StatusBadge status={r.status} t={t} />
               </div>
               <div className="flex flex-wrap gap-2 text-xs text-stone-600">
-                <span>{new Date(r.startDate).toLocaleDateString("lt-LT")} — {new Date(r.endDate).toLocaleDateString("lt-LT")}</span>
+                <span>{new Date(r.startDate).toLocaleDateString(t.dateLocale)} — {new Date(r.endDate).toLocaleDateString(t.dateLocale)}</span>
                 <span className="text-stone-400">·</span>
-                <span>{days} working day{days !== 1 ? "s" : ""}</span>
+                <span>{t.common.workingDays(days)}</span>
                 <span className={`inline-flex rounded-full px-2 py-0.5 font-medium ${
                   r.type === "PAID" ? "bg-stone-100 text-stone-600" : "bg-orange-50 text-orange-700"
-                }`}>{r.type === "PAID" ? "Paid" : "Unpaid"}</span>
+                }`}>{r.type === "PAID" ? t.common.paid : t.common.unpaid}</span>
               </div>
               {r.type === "PAID" && b && (
-                <p className="text-xs text-stone-400">Balance: {b.usedDays}d used / {b.entitlement}d entitlement</p>
+                <p className="text-xs text-stone-400">{t.adminHolidays.used} {b.usedDays}d / {b.entitlement}d {t.adminHolidays.entitlement.replace(":", "")}</p>
               )}
               {r.reason && <p className="text-xs text-stone-400 italic">{r.reason}</p>}
               {showActions && r.status === "PENDING" && <HolidayApproveButtons requestId={r.id} />}
@@ -153,13 +157,13 @@ function RequestTable({
       <table className="hidden sm:table w-full text-sm">
         <thead className="bg-stone-50">
           <tr>
-            <th className="px-4 py-2 text-left font-medium text-stone-500">Employee</th>
-            <th className="px-4 py-2 text-left font-medium text-stone-500">Dates</th>
-            <th className="px-4 py-2 text-left font-medium text-stone-500">Days</th>
-            <th className="px-4 py-2 text-left font-medium text-stone-500">Type</th>
-            <th className="px-4 py-2 text-left font-medium text-stone-500">Balance</th>
-            <th className="px-4 py-2 text-left font-medium text-stone-500">Reason</th>
-            <th className="px-4 py-2 text-left font-medium text-stone-500">Status</th>
+            <th className="px-4 py-2 text-left font-medium text-stone-500">{t.common.employee}</th>
+            <th className="px-4 py-2 text-left font-medium text-stone-500">{t.common.dates}</th>
+            <th className="px-4 py-2 text-left font-medium text-stone-500">{t.common.days}</th>
+            <th className="px-4 py-2 text-left font-medium text-stone-500">{t.common.type}</th>
+            <th className="px-4 py-2 text-left font-medium text-stone-500">{t.common.balance}</th>
+            <th className="px-4 py-2 text-left font-medium text-stone-500">{t.common.reason}</th>
+            <th className="px-4 py-2 text-left font-medium text-stone-500">{t.common.status}</th>
             {showActions && <th className="px-4 py-2" />}
           </tr>
         </thead>
@@ -174,9 +178,9 @@ function RequestTable({
                   <p className="text-xs text-stone-400">{r.user.email}</p>
                 </td>
                 <td className="px-4 py-3 text-stone-700 whitespace-nowrap">
-                  {new Date(r.startDate).toLocaleDateString("lt-LT")}
+                  {new Date(r.startDate).toLocaleDateString(t.dateLocale)}
                   {r.startDate.toISOString().slice(0, 10) !== r.endDate.toISOString().slice(0, 10) && (
-                    <> — {new Date(r.endDate).toLocaleDateString("lt-LT")}</>
+                    <> — {new Date(r.endDate).toLocaleDateString(t.dateLocale)}</>
                   )}
                 </td>
                 <td className="px-4 py-3 text-stone-600 tabular-nums">{days}</td>
@@ -184,14 +188,14 @@ function RequestTable({
                   <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
                     r.type === "PAID" ? "bg-stone-100 text-stone-600" : "bg-orange-50 text-orange-700"
                   }`}>
-                    {r.type === "PAID" ? "Paid" : "Unpaid"}
+                    {r.type === "PAID" ? t.common.paid : t.common.unpaid}
                   </span>
                 </td>
                 <td className="px-4 py-3 text-xs text-stone-400 tabular-nums">
                   {r.type === "PAID" && b ? `${b.usedDays}/${b.entitlement}d` : "—"}
                 </td>
                 <td className="px-4 py-3 text-stone-500">{r.reason ?? "—"}</td>
-                <td className="px-4 py-3"><StatusBadge status={r.status} /></td>
+                <td className="px-4 py-3"><StatusBadge status={r.status} t={t} /></td>
                 {showActions && (
                   <td className="px-4 py-3">
                     {r.status === "PENDING" && <HolidayApproveButtons requestId={r.id} />}
@@ -206,7 +210,7 @@ function RequestTable({
   );
 }
 
-function StatusBadge({ status }: { status: string }) {
+function StatusBadge({ status, t }: { status: string; t: Translations }) {
   const styles: Record<string, string> = {
     PENDING: "bg-amber-50 text-amber-700",
     APPROVED: "bg-green-50 text-green-700",
@@ -214,7 +218,7 @@ function StatusBadge({ status }: { status: string }) {
   };
   return (
     <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${styles[status] ?? ""}`}>
-      {status.charAt(0) + status.slice(1).toLowerCase()}
+      {t.common.statusLabel(status)}
     </span>
   );
 }
