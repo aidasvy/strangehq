@@ -1,6 +1,10 @@
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+let _resend: Resend | null = null;
+function getResend(): Resend {
+  if (!_resend) _resend = new Resend(process.env.RESEND_API_KEY!);
+  return _resend;
+}
 const FROM = process.env.EMAIL_FROM ?? "ShiftSync <noreply@shiftsync.app>";
 
 export type ShiftRow = {
@@ -93,7 +97,7 @@ export async function sendSchedulePublishedEmail({
       <a href="${appUrl}/dashboard/schedule" style="display:inline-block;background:#1c1917;color:#fff;text-decoration:none;padding:10px 20px;border-radius:6px;font-size:14px;font-weight:600;">View in app →</a>
     </p>`;
 
-  await resend.emails.send({
+  await getResend().emails.send({
     from: FROM,
     to,
     subject: `Your schedule for ${week}`,
@@ -134,7 +138,7 @@ export async function sendSwapRequestedEmail({
       <a href="${appUrl}/dashboard/schedule" style="display:inline-block;background:#1c1917;color:#fff;text-decoration:none;padding:10px 20px;border-radius:6px;font-size:14px;font-weight:600;">Respond to request →</a>
     </p>`;
 
-  await resend.emails.send({
+  await getResend().emails.send({
     from: FROM,
     to,
     subject: `Shift swap request from ${requesterName}`,
@@ -174,7 +178,7 @@ export async function sendSwapPendingAdminEmail({
       <a href="${appUrl}/admin/swap-requests" style="display:inline-block;background:#1c1917;color:#fff;text-decoration:none;padding:10px 20px;border-radius:6px;font-size:14px;font-weight:600;">Review swap →</a>
     </p>`;
 
-  await resend.emails.send({
+  await getResend().emails.send({
     from: FROM,
     to,
     subject: `Shift swap approval needed: ${requesterName} ↔ ${targetName}`,
@@ -211,7 +215,7 @@ export async function sendSwapOutcomeEmail({
     : `<p style="color:#44403c;font-size:14px;margin:0 0 20px;">Hi ${name}, your shift swap was <strong>not approved</strong>. Your original shift remains unchanged.</p>
        <a href="${appUrl}/dashboard/schedule" style="display:inline-block;background:#1c1917;color:#fff;text-decoration:none;padding:10px 20px;border-radius:6px;font-size:14px;font-weight:600;">View schedule →</a>`;
 
-  await resend.emails.send({
+  await getResend().emails.send({
     from: FROM,
     to,
     subject: `Shift swap ${status}`,
