@@ -61,9 +61,9 @@ export default async function DashboardPage() {
       {/* Header */}
       <div>
         <h1 className="font-display font-bold text-2xl text-black">
-          {greeting(t)}, {session.user.name?.split(" ")[0] ?? ""}
+          {greeting(t)}
         </h1>
-        <p className="text-sm text-stone-400">{membership.company.name}</p>
+        <p className="text-sm text-stone-400">{session.user.name?.split(" ")[0] ?? ""} · {membership.company.name}</p>
       </div>
 
       {/* Primary clock status card */}
