@@ -184,8 +184,8 @@ export function ScheduleBuilder({
     );
   }
 
-  async function save() {
-    if (scheduleStatus === "PUBLISHED") {
+  async function save(shiftsToSave: Omit<Shift, "id">[] = shifts, opts: { silent?: boolean } = {}) {
+    if (!opts.silent && scheduleStatus === "PUBLISHED") {
       const ok = confirm(
         "This schedule is already published and employees can see it. Saving changes now will not automatically notify them — publish again if you want them re-emailed. Continue?"
       );
@@ -195,12 +195,12 @@ export function ScheduleBuilder({
     const res = await fetch("/api/schedule", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ companyId, locationId, weekStart, shifts }),
+      body: JSON.stringify({ companyId, locationId, weekStart, shifts: shiftsToSave }),
     });
     setSaving(false);
     if (res.ok) {
       const data = await res.json();
-      if (Array.isArray(data.warnings) && data.warnings.length > 0) {
+      if (!opts.silent && Array.isArray(data.warnings) && data.warnings.length > 0) {
         alert(data.warnings.join("\n"));
       }
     }
@@ -246,6 +246,13 @@ export function ScheduleBuilder({
       const { shifts: suggested } = await res.json();
       if (Array.isArray(suggested) && suggested.length > 0) {
         setShifts(suggested);
+        // Persist the suggestion as a draft immediately so switching locations/weeks
+        // doesn't lose it and force another (paid) AI call for the same result.
+        // Skip this for an already-published schedule — that still needs the
+        // explicit confirm-before-overwriting-live-shifts flow in save().
+        if (scheduleStatus !== "PUBLISHED") {
+          await save(suggested, { silent: true });
+        }
       }
     } finally {
       setSuggesting(false);
@@ -396,7 +403,7 @@ export function ScheduleBuilder({
       {/* Action bar */}
       <div className="flex gap-3 items-center flex-wrap">
         <button
-          onClick={save}
+          onClick={() => save()}
           disabled={saving}
           className="rounded-lg bg-stone-800 px-4 py-2 text-sm font-medium text-white hover:bg-stone-700 disabled:opacity-50 transition-colors"
         >
