@@ -24,7 +24,7 @@ export default async function HolidaysPage() {
     return (
       <div className="p-4 sm:p-6 space-y-6 max-w-3xl">
         <Link href="/dashboard" className="text-sm text-stone-400 hover:text-stone-600 transition-colors">{t.common.backHome}</Link>
-        <h1 className="text-2xl font-bold text-stone-900">{t.timeOff.title}</h1>
+        <h1 className="font-display font-bold text-2xl uppercase tracking-wide text-black">{t.timeOff.title}</h1>
         <div className="rounded-lg border border-amber-200 bg-amber-50 p-6 text-center space-y-2">
           <p className="text-sm font-medium text-amber-800">{t.timeOff.notSetup}</p>
           <p className="text-xs text-amber-600">{t.timeOff.notSetupDesc}</p>
@@ -58,7 +58,7 @@ export default async function HolidaysPage() {
   return (
     <div className="p-4 sm:p-6 space-y-6 max-w-3xl">
       <Link href="/dashboard" className="text-sm text-stone-400 hover:text-stone-600 transition-colors">{t.common.backHome}</Link>
-      <h1 className="text-2xl font-bold text-stone-900">{t.timeOff.title}</h1>
+      <h1 className="font-display font-bold text-2xl uppercase tracking-wide text-black">{t.timeOff.title}</h1>
 
       {/* Balance banner */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">

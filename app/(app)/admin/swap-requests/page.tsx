@@ -59,7 +59,7 @@ export default async function SwapRequestsPage() {
     <div className="p-4 sm:p-6 space-y-6">
       <Link href="/admin" className="text-sm text-stone-400 hover:text-stone-600 transition-colors">← Overview</Link>
       <div>
-        <h1 className="text-2xl font-bold text-stone-900">Shift swaps</h1>
+        <h1 className="font-display font-bold text-2xl uppercase tracking-wide text-black">Shift swaps</h1>
         <p className="text-sm text-stone-500 mt-0.5">Review and approve swap requests between employees.</p>
       </div>
 

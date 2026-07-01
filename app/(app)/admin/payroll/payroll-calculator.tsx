@@ -165,7 +165,7 @@ function Row({
     <div className="flex justify-between items-center text-sm">
       <span className={`text-stone-600 ${note ? "italic text-xs" : ""}`}>{label}</span>
       <span
-        className={`font-medium ${bold ? "text-base" : ""} ${red ? "text-red-600" : ""} ${green ? "text-green-600 text-lg font-bold" : ""} ${note ? "text-xs text-stone-400" : ""}`}
+        className={`font-mono font-medium ${bold ? "text-base" : ""} ${red ? "text-red-600" : ""} ${green ? "text-green-600 text-lg font-bold" : ""} ${note ? "text-xs text-stone-400" : ""}`}
       >
         {value}
       </span>

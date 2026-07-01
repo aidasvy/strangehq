@@ -10,7 +10,7 @@ export default async function HomePage() {
     <main className="min-h-screen flex flex-col items-center justify-center px-4">
       <div className="max-w-md w-full text-center space-y-8">
         <div className="space-y-3">
-          <h1 className="text-4xl font-bold tracking-tight text-stone-900">
+          <h1 className="font-display font-extrabold text-6xl uppercase tracking-wide leading-none text-black">
             Strange<span className="text-stone-400">HQ</span>
           </h1>
           <p className="text-stone-500 text-lg leading-relaxed">
@@ -21,7 +21,7 @@ export default async function HomePage() {
         <div className="space-y-3">
           <Link
             href="/sign-in"
-            className="flex items-center justify-center gap-3 w-full rounded-xl bg-stone-800 px-6 py-3.5 text-white font-medium hover:bg-stone-700 transition-colors shadow-sm"
+            className="flex items-center justify-center gap-3 w-full border border-black bg-black px-6 py-3.5 text-white font-medium hover:bg-stone-800 transition-colors"
           >
             <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0" aria-hidden="true">
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#93c5fd" />
@@ -33,11 +33,11 @@ export default async function HomePage() {
           </Link>
         </div>
 
-        <div className="flex items-center justify-center gap-6 text-xs text-stone-400">
+        <div className="flex items-center justify-center gap-6 text-xs font-mono uppercase tracking-wide text-stone-400">
           <span>Schedules &amp; shifts</span>
-          <span className="w-1 h-1 rounded-full bg-stone-300" />
+          <span className="w-1 h-1 rounded-full bg-stone-400" />
           <span>Time tracking</span>
-          <span className="w-1 h-1 rounded-full bg-stone-300" />
+          <span className="w-1 h-1 rounded-full bg-stone-400" />
           <span>Payroll ready</span>
         </div>
       </div>

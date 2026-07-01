@@ -3,6 +3,38 @@
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 
+function SparklesIcon() {
+  return (
+    <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.456-2.456L14.25 6l1.035-.259a3.375 3.375 0 002.456-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z" />
+    </svg>
+  );
+}
+
+function WarningIcon() {
+  return (
+    <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+    </svg>
+  );
+}
+
+function CalendarIcon() {
+  return (
+    <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+    </svg>
+  );
+}
+
+function StatusDot({ error }: { error: boolean }) {
+  return (
+    <svg className={`w-2.5 h-2.5 shrink-0 ${error ? "text-red-600" : "text-amber-500"}`} viewBox="0 0 8 8" fill="currentColor">
+      <circle cx="4" cy="4" r="4" />
+    </svg>
+  );
+}
+
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 type Role = "EMPLOYEE" | "MANAGER" | "ADMIN";
@@ -334,7 +366,7 @@ export function ScheduleBuilder({
             <p className="text-xs text-purple-600 truncate">Also at {crossShift.locationName}</p>
           )}
           {status === "no_avail" && hasAvailData && <p className="text-xs text-red-500">Unavailable</p>}
-          {status === "outside_window" && avail && <p className="text-xs text-amber-600">{avail.startTime}–{avail.endTime}</p>}
+          {status === "outside_window" && avail && <p className="text-xs font-mono text-amber-600">{avail.startTime}–{avail.endTime}</p>}
         </div>
       );
     }
@@ -347,7 +379,7 @@ export function ScheduleBuilder({
             ? "border-purple-200 text-purple-400 hover:bg-purple-50"
             : avail
             ? "border-green-300 text-green-600 hover:bg-green-50"
-            : "border-stone-200 text-stone-300 hover:bg-stone-50 hover:text-stone-500"
+            : "border-stone-200 text-stone-400 hover:bg-stone-50 hover:text-stone-500"
         }`}
       >
         {crossShift
@@ -391,7 +423,8 @@ export function ScheduleBuilder({
           title="Let AI build an optimal schedule based on availability and hours"
           className="rounded-lg border border-stone-300 bg-white px-4 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50 disabled:opacity-50 transition-colors flex items-center gap-2"
         >
-          <span>{suggesting ? "✨ Thinking…" : "✨ Suggest schedule"}</span>
+          <SparklesIcon />
+          <span>{suggesting ? "Thinking…" : "Suggest schedule"}</span>
         </button>
         <button
           onClick={wipeWeek}
@@ -410,7 +443,7 @@ export function ScheduleBuilder({
             onClick={() => setShowWarnings((v) => !v)}
             className="flex items-center gap-2 text-sm font-medium w-full text-left"
           >
-            <span>{errors.length > 0 ? "🔴" : "🟡"}</span>
+            <StatusDot error={errors.length > 0} />
             <span className={errors.length > 0 ? "text-red-700" : "text-amber-700"}>
               {errors.length} error{errors.length !== 1 ? "s" : ""}, {warns.length} warning{warns.length !== 1 ? "s" : ""}
             </span>
@@ -480,13 +513,17 @@ export function ScheduleBuilder({
                     </div>
                     <p className="text-xs text-stone-400">
                       {weekH > 0 ? `${weekH.toFixed(1)}h this week` : "No shifts yet"}
-                      {weekH > 40 && <span className="text-red-500 ml-1">⚠ over 40h</span>}
+                      {weekH > 40 && (
+                        <span className="text-red-500 ml-1 inline-flex items-center gap-0.5">
+                          <WarningIcon /> over 40h
+                        </span>
+                      )}
                     </p>
                   </div>
                   {shift ? (
-                    <span className="text-xs text-stone-900 font-semibold shrink-0">{shift.startTime}–{shift.endTime}</span>
+                    <span className="text-xs font-mono text-stone-900 font-semibold shrink-0">{shift.startTime}–{shift.endTime}</span>
                   ) : (
-                    <span className="text-xs text-stone-300 shrink-0">No shift</span>
+                    <span className="text-xs text-stone-400 shrink-0">No shift</span>
                   )}
                 </div>
                 <ShiftCell emp={emp} date={date} dayNum={dayNum} />
@@ -532,9 +569,9 @@ export function ScheduleBuilder({
                       <a href={`tel:${emp.phone}`} className="text-xs text-stone-400 hover:text-stone-600 block leading-tight mt-0.5">{emp.phone}</a>
                     )}
                     <div className="flex gap-2 mt-1">
-                      <span className="text-xs text-stone-400" title="Approved hours this calendar month">✓ {emp.monthlyApprovedHours}h</span>
-                      <span className="text-xs text-stone-300">·</span>
-                      <span className="text-xs text-stone-400" title="Scheduled hours this calendar month">📅 {emp.monthlyScheduledHours}h</span>
+                      <span className="text-xs font-mono text-stone-400 inline-flex items-center gap-0.5" title="Approved hours this calendar month">✓ {emp.monthlyApprovedHours}h</span>
+                      <span className="text-xs text-stone-400">·</span>
+                      <span className="text-xs font-mono text-stone-400 inline-flex items-center gap-0.5" title="Scheduled hours this calendar month"><CalendarIcon /> {emp.monthlyScheduledHours}h</span>
                     </div>
                   </td>
 

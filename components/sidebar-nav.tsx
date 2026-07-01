@@ -52,11 +52,11 @@ export function SidebarNav({ companyName, userName, userEmail, isAdmin, isFullAd
     <>
       {/* ── DESKTOP SIDEBAR ─────────────────────────────────────────── */}
       <aside className="hidden lg:flex w-56 shrink-0 bg-white border-r border-stone-200 flex-col">
-        <div className="px-4 py-5 border-b border-stone-100">
-          <Link href="/dashboard" className="font-bold text-lg tracking-tight text-stone-900 hover:opacity-80 transition-opacity">
-            Strange<span className="text-stone-400">HQ</span>
+        <div className="px-4 py-5 bg-black">
+          <Link href="/dashboard" className="font-display font-bold text-2xl leading-none uppercase tracking-wide text-white hover:opacity-80 transition-opacity">
+            Strange<span className="text-stone-500">HQ</span>
           </Link>
-          <p className="text-xs text-stone-400 truncate mt-0.5">{companyName}</p>
+          <p className="text-[11px] text-stone-400 truncate mt-1.5 font-mono uppercase tracking-wide">{companyName}</p>
         </div>
 
         <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
@@ -96,7 +96,7 @@ export function SidebarNav({ companyName, userName, userEmail, isAdmin, isFullAd
 
       {/* ── MOBILE HEADER ───────────────────────────────────────────── */}
       <div className="lg:hidden fixed top-0 inset-x-0 z-40 bg-white border-b border-stone-200 flex items-center justify-between px-4 h-14">
-        <Link href="/dashboard" className="font-bold text-lg tracking-tight text-stone-900">
+        <Link href="/dashboard" className="font-display font-bold text-xl uppercase tracking-wide text-stone-900">
           Strange<span className="text-stone-400">HQ</span>
         </Link>
 
@@ -207,7 +207,8 @@ function TabIcon({ href, active }: { href: string; active: boolean }) {
   );
   if (href === "/dashboard/holidays") return (
     <svg className={cls} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={active ? 2.5 : 2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+      <circle cx="12" cy="12" r="3.75" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25M12 18.75V21M5.636 5.636l1.591 1.591M16.773 16.773l1.591 1.591M3 12h2.25M18.75 12H21M5.636 18.364l1.591-1.591M16.773 7.227l1.591-1.591" />
     </svg>
   );
   // Admin
@@ -221,7 +222,7 @@ function TabIcon({ href, active }: { href: string; active: boolean }) {
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <p className="px-3 pt-1 pb-1 text-xs font-semibold text-stone-400 uppercase tracking-wider">{children}</p>
+    <p className="px-3 pt-1 pb-1 text-xs font-display font-bold text-stone-400 uppercase tracking-wider">{children}</p>
   );
 }
 

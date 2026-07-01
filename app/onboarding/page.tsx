@@ -111,7 +111,7 @@ export default function OnboardingPage() {
       <main className="min-h-screen flex items-center justify-center px-4">
         <div className="max-w-sm w-full space-y-6 text-center">
           <div className="space-y-1">
-            <h1 className="text-2xl font-bold text-stone-900">
+            <h1 className="font-display font-bold text-2xl uppercase tracking-wide text-black">
               Strange<span className="text-stone-400">HQ</span>
             </h1>
             <p className="text-stone-500 text-sm mt-2">Get started by creating or joining a company</p>

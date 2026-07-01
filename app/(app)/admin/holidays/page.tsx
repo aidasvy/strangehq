@@ -52,7 +52,7 @@ export default async function AdminHolidaysPage() {
   return (
     <div className="p-4 sm:p-6 space-y-6">
       <Link href="/admin" className="text-sm text-stone-400 hover:text-stone-600 transition-colors">{t.common.backOverview}</Link>
-      <h1 className="text-2xl font-bold text-stone-900">{t.adminHolidays.title}</h1>
+      <h1 className="font-display font-bold text-2xl uppercase tracking-wide text-black">{t.adminHolidays.title}</h1>
 
       {/* Leave balance summary per employee */}
       <div>

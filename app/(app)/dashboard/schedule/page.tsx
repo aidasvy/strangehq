@@ -117,7 +117,7 @@ export default async function SchedulePage() {
   return (
     <div className="p-6 space-y-6">
       <Link href="/dashboard" className="text-sm text-stone-400 hover:text-stone-600 transition-colors">{t.common.backHome}</Link>
-      <h1 className="text-2xl font-bold text-stone-900">{t.dashSchedule.title}</h1>
+      <h1 className="font-display font-bold text-2xl uppercase tracking-wide text-black">{t.dashSchedule.title}</h1>
       <p className="text-sm text-stone-500">
         {t.dashSchedule.weekOf} {weekStart.toLocaleDateString(t.dateLocale, { day: "numeric", month: "long", year: "numeric" })}
       </p>
@@ -149,12 +149,12 @@ export default async function SchedulePage() {
                     <td key={i} className="px-3 py-4 text-center align-top border-t border-stone-100">
                       {shift ? (
                         <div className="rounded bg-stone-100 text-stone-900 px-2 py-1.5 text-xs font-medium space-y-0.5">
-                          <p>{shift.startTime}–{shift.endTime}</p>
+                          <p className="font-mono">{shift.startTime}–{shift.endTime}</p>
                           <p className="text-stone-500 font-normal truncate">{shift.locationName}</p>
                           <SwapButton myShift={shift} colleagueShifts={colleagueShifts} />
                         </div>
                       ) : (
-                        <span className="text-stone-300 text-xs">—</span>
+                        <span className="text-stone-400 text-xs">—</span>
                       )}
                     </td>
                   );

@@ -67,7 +67,7 @@ export function EmployeeRoleEditor({ memberId, currentRole, isSelf }: Props) {
     return (
       <div className="flex items-center gap-2 flex-wrap">
         {badge}
-        <span className="text-stone-300 text-xs">→</span>
+        <span className="text-stone-400 text-xs">→</span>
         {currentRole !== "MANAGER" && (
           <button
             onClick={() => setRole("MANAGER")}
@@ -100,7 +100,7 @@ export function EmployeeRoleEditor({ memberId, currentRole, isSelf }: Props) {
   return (
     <button onClick={() => setOpen(true)} className="group flex items-center gap-1.5">
       {badge}
-      <span className="text-xs text-stone-300 group-hover:text-stone-500 transition-colors">edit</span>
+      <span className="text-xs text-stone-400 group-hover:text-stone-500 transition-colors">edit</span>
     </button>
   );
 }

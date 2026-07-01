@@ -143,7 +143,7 @@ export function ClockControls({ companyId, openEntry, locations, defaultLocation
         <div className="flex items-start justify-between">
           <div>
             <p className="text-sm font-medium text-green-800">{t.hours.currentlyClockedIn}</p>
-            <p className="text-3xl font-bold text-green-900 mt-1 tabular-nums tracking-tight">
+            <p className="text-3xl font-mono font-bold text-green-900 mt-1 tabular-nums tracking-tight">
               {elapsed || "…"}
             </p>
             {adjusting ? (

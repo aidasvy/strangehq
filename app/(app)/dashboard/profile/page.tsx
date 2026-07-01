@@ -52,7 +52,7 @@ export default function ProfilePage() {
     <div className="p-6 space-y-6 max-w-md">
       <Link href="/dashboard" className="text-sm text-stone-400 hover:text-stone-600 transition-colors">{t.common.backHome}</Link>
       <div>
-        <h1 className="text-2xl font-bold text-stone-900">{t.profile.title}</h1>
+        <h1 className="font-display font-bold text-2xl uppercase tracking-wide text-black">{t.profile.title}</h1>
         <p className="text-sm text-stone-500 mt-0.5">{t.profile.subtitle}</p>
       </div>
 

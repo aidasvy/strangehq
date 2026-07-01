@@ -60,7 +60,7 @@ export default async function DashboardPage() {
     <div className="p-5 space-y-5 max-w-2xl">
       {/* Header */}
       <div>
-        <h1 className="text-xl font-bold text-stone-900">
+        <h1 className="font-display font-bold text-2xl text-black">
           {greeting(t)}, {session.user.name?.split(" ")[0] ?? ""}
         </h1>
         <p className="text-sm text-stone-400">{membership.company.name}</p>
@@ -75,7 +75,7 @@ export default async function DashboardPage() {
           <div className="flex items-start justify-between">
             <div>
               <p className="text-green-100 text-sm font-medium">{t.dash.shiftActive}</p>
-              <p className="text-3xl font-bold mt-1 tabular-nums tracking-tight">
+              <p className="text-3xl font-mono font-bold mt-1 tabular-nums tracking-tight">
                 {elapsedString(openEntry.clockIn)}
               </p>
               <p className="text-green-200 text-xs mt-1">
@@ -98,7 +98,7 @@ export default async function DashboardPage() {
               <p className="font-semibold text-stone-800">{t.dash.shiftIdle}</p>
               {todayShift ? (
                 <p className="text-sm text-stone-500 mt-0.5">
-                  {t.dash.today}: {todayShift.startTime} – {todayShift.endTime}
+                  {t.dash.today}: <span className="font-mono">{todayShift.startTime} – {todayShift.endTime}</span>
                 </p>
               ) : (
                 <p className="text-sm text-stone-400 mt-0.5">{t.dash.noShiftsToday}</p>
@@ -117,7 +117,10 @@ export default async function DashboardPage() {
           href="/dashboard/hours"
           className="flex items-center gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 hover:bg-amber-100 transition-colors"
         >
-          <span className="text-amber-500 text-base">⏳</span>
+          <svg className="w-4 h-4 shrink-0 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+            <circle cx="12" cy="12" r="9" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 7v5l3 3" />
+          </svg>
           <p className="text-sm text-amber-800">{t.dash.pendingEntries(pendingEntries)}</p>
           <span className="ml-auto text-xs text-amber-600">{t.dash.view}</span>
         </Link>
@@ -127,7 +130,10 @@ export default async function DashboardPage() {
           href="/dashboard/holidays"
           className="flex items-center gap-3 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 hover:bg-blue-100 transition-colors"
         >
-          <span className="text-blue-500 text-base">✈️</span>
+          <svg className="w-4 h-4 shrink-0 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+            <circle cx="12" cy="12" r="3.75" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25M12 18.75V21M5.636 5.636l1.591 1.591M16.773 16.773l1.591 1.591M3 12h2.25M18.75 12H21M5.636 18.364l1.591-1.591M16.773 7.227l1.591-1.591" />
+          </svg>
           <p className="text-sm text-blue-800">{t.dash.pendingHolidays(pendingHolidays)}</p>
           <span className="ml-auto text-xs text-blue-600">{t.dash.view}</span>
         </Link>
@@ -145,7 +151,7 @@ export default async function DashboardPage() {
       <div className="grid grid-cols-2 gap-3">
         <div className="rounded-lg border border-stone-200 bg-white shadow-sm p-4">
           <p className="text-xs text-stone-500 uppercase tracking-wider font-medium">{t.dash.thisWeek}</p>
-          <p className="text-2xl font-bold text-stone-900 mt-1 tabular-nums">{weekHours.toFixed(1)}h</p>
+          <p className="text-2xl font-mono font-bold text-stone-900 mt-1 tabular-nums">{weekHours.toFixed(1)}h</p>
           {estimatedGross !== null ? (
             <p className="text-xs text-stone-400 mt-0.5">≈ €{estimatedGross.toFixed(2)} gross</p>
           ) : (
@@ -160,7 +166,7 @@ export default async function DashboardPage() {
               <p className="text-sm font-semibold text-stone-900 mt-1">
                 {fmtDate(upcomingShifts[0].date, t.dateLocale)}
               </p>
-              <p className="text-xs text-stone-500 mt-0.5">
+              <p className="text-xs font-mono text-stone-500 mt-0.5">
                 {upcomingShifts[0].startTime} – {upcomingShifts[0].endTime}
               </p>
             </>
@@ -183,7 +189,7 @@ export default async function DashboardPage() {
             {upcomingShifts.map((s) => (
               <div key={s.id} className="flex items-center justify-between px-4 py-3">
                 <span className="text-sm font-medium text-stone-800">{fmtDate(s.date, t.dateLocale)}</span>
-                <span className="text-xs text-stone-500 tabular-nums">{s.startTime} – {s.endTime}</span>
+                <span className="text-xs font-mono text-stone-500 tabular-nums">{s.startTime} – {s.endTime}</span>
               </div>
             ))}
           </div>

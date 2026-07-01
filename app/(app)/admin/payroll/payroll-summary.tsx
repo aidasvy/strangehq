@@ -113,7 +113,7 @@ export function PayrollSummary({ summaryData, config, year, month, monthLabel }:
                         {bd!.holidayHours > 0.01 && <PremiumBadge label="holiday" hours={bd!.holidayHours} />}
                       </div>
                     ) : (
-                      <span className="text-stone-300 text-xs">—</span>
+                      <span className="text-stone-400 text-xs">—</span>
                     )}
                   </td>
                   <td className="px-4 py-3 text-right tabular-nums text-stone-500">

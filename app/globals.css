@@ -1,6 +1,39 @@
 @import "tailwindcss";
 
+@theme {
+  /* Body copy stays on Geist for readability; display type gets the condensed
+     Big Shoulders voice; anything numeric (times, dates, money) goes mono. */
+  --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-shoulders), ui-sans-serif, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+
+  /* True neutral black/white ramp — no warm "stone" cast. 200/300 lean all
+     the way to near-black/black since they carry almost every card, panel,
+     and input border in the app (the old washed-out grays were the "every
+     app looks the same" tell). A handful of spots that used 200/300 for
+     genuinely faint text were moved to 400 — see sidebar-nav and friends. */
+  --color-stone-50: #fafafa;
+  --color-stone-100: #efefef;
+  --color-stone-200: #1a1a1a;
+  --color-stone-300: #000000;
+  --color-stone-400: #8f8f8f;
+  --color-stone-500: #6b6b6b;
+  --color-stone-600: #464646;
+  --color-stone-700: #222222;
+  --color-stone-800: #0d0d0d;
+  --color-stone-900: #000000;
+
+  /* Flat, hard-edged surfaces instead of soft rounded/shadowed cards.
+     rounded-full (pills, avatars, dots) is untouched on purpose. */
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
+  --shadow-sm: 0 0 #0000;
+  --shadow-md: 0 0 #0000;
+}
+
 body {
-  background-color: #FAFAFA;
-  color: #1c1917;
+  background-color: #fafafa;
+  color: #000000;
 }

@@ -35,7 +35,7 @@ export default async function HoursPage() {
   return (
     <div className="p-6 space-y-6">
       <Link href="/dashboard" className="text-sm text-stone-400 hover:text-stone-600 transition-colors">{t.common.backHome}</Link>
-      <h1 className="text-2xl font-bold text-stone-900">{t.hours.title}</h1>
+      <h1 className="font-display font-bold text-2xl uppercase tracking-wide text-black">{t.hours.title}</h1>
 
       <div className="max-w-2xl">
         <ClockControls
@@ -70,12 +70,12 @@ export default async function HoursPage() {
                   : "—";
                 return (
                   <tr key={entry.id} className="hover:bg-stone-50 transition-colors align-top">
-                    <td className="px-4 py-3 text-stone-600">
+                    <td className="px-4 py-3 font-mono text-stone-600">
                       {entry.clockIn.toLocaleDateString(t.dateLocale, { day: "2-digit", month: "short", year: "numeric" })}
                     </td>
-                    <td className="px-4 py-3 text-stone-700">{fmt(entry.clockIn, t.dateLocale)}</td>
-                    <td className="px-4 py-3">{entry.clockOut ? fmt(entry.clockOut, t.dateLocale) : <span className="text-green-600 font-medium">{t.common.active}</span>}</td>
-                    <td className="px-4 py-3 text-stone-700">{hours}</td>
+                    <td className="px-4 py-3 font-mono text-stone-700">{fmt(entry.clockIn, t.dateLocale)}</td>
+                    <td className="px-4 py-3 font-mono">{entry.clockOut ? fmt(entry.clockOut, t.dateLocale) : <span className="text-green-600 font-medium">{t.common.active}</span>}</td>
+                    <td className="px-4 py-3 font-mono text-stone-700">{hours}</td>
                     <td className="px-4 py-3">
                       <StatusBadge status={entry.status} t={t} />
                       {entry.status === "REJECTED" && entry.clockOut && (

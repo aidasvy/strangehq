@@ -62,7 +62,7 @@ export default async function AdminSchedulePage({
   if (locations.length === 0) {
     return (
       <div className="p-6 space-y-4">
-        <h1 className="text-2xl font-bold text-stone-900">{t.adminSchedule.title}</h1>
+        <h1 className="font-display font-bold text-2xl uppercase tracking-wide text-black">{t.adminSchedule.title}</h1>
         <p className="text-stone-500 text-sm">
           {t.adminSchedule.noLocation}{" "}
           <Link href="/admin/locations" className="text-stone-900 underline">
@@ -190,7 +190,7 @@ export default async function AdminSchedulePage({
       <Link href="/admin" className="text-sm text-stone-400 hover:text-stone-600 transition-colors">{t.common.backOverview}</Link>
       <div className="space-y-3">
         <div>
-          <h1 className="text-2xl font-bold text-stone-900">{t.adminSchedule.title}</h1>
+          <h1 className="font-display font-bold text-2xl uppercase tracking-wide text-black">{t.adminSchedule.title}</h1>
           <p className="text-sm text-stone-500">
             {t.adminSchedule.weekOf} {weekStart.toLocaleDateString(t.dateLocale, { day: "numeric", month: "long", year: "numeric" })}
           </p>

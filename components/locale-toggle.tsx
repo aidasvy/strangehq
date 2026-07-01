@@ -18,7 +18,7 @@ export function LocaleToggle() {
       title="Switch language"
     >
       <span className={locale === "en" ? "text-stone-900" : "text-stone-400"}>EN</span>
-      <span className="text-stone-300 mx-0.5">|</span>
+      <span className="text-stone-400 mx-0.5">|</span>
       <span className={locale === "lt" ? "text-stone-900" : "text-stone-400"}>LT</span>
     </button>
   );

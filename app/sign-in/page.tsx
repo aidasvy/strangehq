@@ -7,14 +7,14 @@ export default function SignInPage() {
     <main className="min-h-screen flex items-center justify-center px-4">
       <div className="w-full max-w-sm space-y-6 text-center">
         <div className="space-y-1">
-          <h1 className="text-2xl font-bold text-stone-900">
+          <h1 className="font-display font-extrabold text-4xl uppercase tracking-wide text-black">
             Strange<span className="text-stone-400">HQ</span>
           </h1>
           <p className="text-stone-500 text-sm mt-2">Sign in with your Google account to continue</p>
         </div>
         <button
           onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
-          className="w-full flex items-center justify-center gap-3 rounded-lg border border-stone-300 bg-white px-6 py-3 text-sm font-medium text-stone-700 shadow-sm hover:bg-stone-50 transition-colors"
+          className="w-full flex items-center justify-center gap-3 border border-black bg-white px-6 py-3 text-sm font-medium text-stone-700 hover:bg-stone-50 transition-colors"
         >
           <GoogleIcon />
           Continue with Google

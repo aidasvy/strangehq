@@ -32,7 +32,7 @@ export default async function EmployeesPage() {
   return (
     <div className="p-6 space-y-6">
       <Link href="/admin" className="text-sm text-stone-400 hover:text-stone-600 transition-colors">{t.common.backOverview}</Link>
-      <h1 className="text-2xl font-bold text-stone-900">{t.adminEmployees.title}</h1>
+      <h1 className="font-display font-bold text-2xl uppercase tracking-wide text-black">{t.adminEmployees.title}</h1>
 
       <div className="flex justify-end">
         <a

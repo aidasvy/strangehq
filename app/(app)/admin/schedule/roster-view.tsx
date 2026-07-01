@@ -1,5 +1,21 @@
 "use client";
 
+function PhoneIcon() {
+  return (
+    <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h1.5a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106a1.125 1.125 0 00-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97a1.125 1.125 0 00.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
+    </svg>
+  );
+}
+
+function MailIcon() {
+  return (
+    <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+    </svg>
+  );
+}
+
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 type Role = "EMPLOYEE" | "MANAGER" | "ADMIN";
@@ -74,15 +90,15 @@ export function RosterView({ weekStart, employees, shifts }: Props) {
               <div className={`px-3 py-2 border-b ${isToday ? "bg-stone-900 border-stone-900" : "bg-stone-50 border-stone-100"}`}>
                 <p className={`text-sm font-semibold ${isToday ? "text-white" : "text-stone-700"}`}>
                   {DAYS[dayIdx]}
-                  {isToday && <span className="ml-1.5 text-xs font-normal text-stone-300">Today</span>}
+                  {isToday && <span className="ml-1.5 text-xs font-normal text-stone-400">Today</span>}
                 </p>
-                <p className={`text-xs ${isToday ? "text-stone-300" : "text-stone-400"}`}>
+                <p className="text-xs text-stone-400">
                   {date.toLocaleDateString("lt-LT", { day: "numeric", month: "short" })}
                 </p>
               </div>
 
               {dayShifts.length === 0 ? (
-                <p className="px-3 py-3 text-xs text-stone-300">No shifts</p>
+                <p className="px-3 py-3 text-xs text-stone-400">No shifts</p>
               ) : (
                 <ul className="divide-y divide-stone-50">
                   {dayShifts.map((s, i) => {
@@ -102,7 +118,7 @@ export function RosterView({ weekStart, employees, shifts }: Props) {
                                 </span>
                               )}
                             </div>
-                            <p className="text-xs text-stone-900 font-semibold">
+                            <p className="text-xs font-mono text-stone-900 font-semibold">
                               {s.startTime}–{s.endTime}
                               <span className="text-stone-400 font-normal ml-1">
                                 ({shiftHours(s.startTime, s.endTime).toFixed(1)}h)
@@ -119,14 +135,14 @@ export function RosterView({ weekStart, employees, shifts }: Props) {
                               href={`tel:${emp.phone}`}
                               className="text-xs text-stone-500 hover:text-stone-800 flex items-center gap-0.5"
                             >
-                              📞 {emp.phone}
+                              <PhoneIcon /> {emp.phone}
                             </a>
                           )}
                           <a
                             href={`mailto:${emp.email}`}
-                            className="text-xs text-stone-400 hover:text-stone-600 truncate"
+                            className="text-xs text-stone-400 hover:text-stone-600 truncate flex items-center gap-0.5"
                           >
-                            ✉ {emp.email}
+                            <MailIcon /> {emp.email}
                           </a>
                         </div>
                       </li>
@@ -174,8 +190,8 @@ export function RosterView({ weekStart, employees, shifts }: Props) {
                   </span>
                 </div>
                 <div className="flex gap-3 text-xs">
-                  {emp.phone && <a href={`tel:${emp.phone}`} className="text-stone-500">📞 {emp.phone}</a>}
-                  <a href={`mailto:${emp.email}`} className="text-stone-400">✉ {emp.email}</a>
+                  {emp.phone && <a href={`tel:${emp.phone}`} className="text-stone-500 flex items-center gap-0.5"><PhoneIcon /> {emp.phone}</a>}
+                  <a href={`mailto:${emp.email}`} className="text-stone-400 flex items-center gap-0.5"><MailIcon /> {emp.email}</a>
                 </div>
               </div>
             );
@@ -211,8 +227,8 @@ export function RosterView({ weekStart, employees, shifts }: Props) {
                     </td>
                     <td className="px-4 py-3">
                       <div className="space-y-0.5">
-                        {emp.phone && <a href={`tel:${emp.phone}`} className="block text-xs text-stone-500 hover:text-stone-800">📞 {emp.phone}</a>}
-                        <a href={`mailto:${emp.email}`} className="block text-xs text-stone-400 hover:text-stone-600">✉ {emp.email}</a>
+                        {emp.phone && <a href={`tel:${emp.phone}`} className="flex items-center gap-0.5 text-xs text-stone-500 hover:text-stone-800"><PhoneIcon /> {emp.phone}</a>}
+                        <a href={`mailto:${emp.email}`} className="flex items-center gap-0.5 text-xs text-stone-400 hover:text-stone-600"><MailIcon /> {emp.email}</a>
                       </div>
                     </td>
                     <td className="px-4 py-3 text-right tabular-nums text-stone-700">{emp.monthlyApprovedHours}h</td>

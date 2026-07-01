@@ -71,7 +71,7 @@ export default function StaffingPage({ params }: { params: Promise<{ id: string 
       </Link>
 
       <div>
-        <h1 className="text-2xl font-bold text-stone-900">Staffing Requirements</h1>
+        <h1 className="font-display font-bold text-2xl uppercase tracking-wide text-black">Staffing Requirements</h1>
         <p className="text-sm text-stone-500">Set when this location is open and how many staff are needed</p>
       </div>
 
@@ -136,7 +136,7 @@ export default function StaffingPage({ params }: { params: Promise<{ id: string 
                               className={`w-14 rounded border text-center text-xs px-1 py-1 focus:outline-none focus:ring-1 focus:ring-stone-400 ${
                                 val > 0
                                   ? "border-stone-400 bg-stone-100 text-stone-900 font-medium"
-                                  : "border-stone-200 text-stone-300"
+                                  : "border-stone-200 text-stone-400"
                               }`}
                             />
                           </td>

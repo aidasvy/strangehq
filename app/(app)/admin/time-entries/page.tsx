@@ -61,7 +61,7 @@ export default async function TimeEntriesPage({
       <Link href="/admin" className="text-sm text-stone-400 hover:text-stone-600 transition-colors">{t.common.backOverview}</Link>
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-stone-900">{t.adminTimeEntries.title}</h1>
+          <h1 className="font-display font-bold text-2xl uppercase tracking-wide text-black">{t.adminTimeEntries.title}</h1>
           {activeEntries.length > 0 && (
             <p className="text-sm text-green-700 mt-0.5">
               {t.adminTimeEntries.currentlyClocked(activeEntries.length)}
@@ -104,7 +104,9 @@ export default async function TimeEntriesPage({
 
       {staleEntries.length > 0 && (
         <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
-          <span className="text-amber-500 mt-0.5">⚠️</span>
+          <svg className="w-4 h-4 shrink-0 text-amber-500 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+          </svg>
           <div>
             <p className="text-sm font-medium text-amber-800">{t.adminTimeEntries.staleClockIns}</p>
             <p className="text-xs text-amber-700 mt-0.5">
@@ -158,12 +160,12 @@ export default async function TimeEntriesPage({
                       <p className="font-medium text-stone-900">{e.user.name ?? "—"}</p>
                       <p className="text-xs text-stone-400">{e.user.email}</p>
                     </td>
-                    <td className="px-4 py-3 text-stone-600">
+                    <td className="px-4 py-3 font-mono text-stone-600">
                       {e.clockIn.toLocaleDateString(t.dateLocale)}
                     </td>
-                    <td className="px-4 py-3 text-stone-700">{fmt(e.clockIn, t.dateLocale)}</td>
-                    <td className="px-4 py-3">{e.clockOut ? fmt(e.clockOut, t.dateLocale) : <span className="text-green-600">{t.common.active}</span>}</td>
-                    <td className="px-4 py-3 text-stone-700">{hours}</td>
+                    <td className="px-4 py-3 font-mono text-stone-700">{fmt(e.clockIn, t.dateLocale)}</td>
+                    <td className="px-4 py-3 font-mono">{e.clockOut ? fmt(e.clockOut, t.dateLocale) : <span className="text-green-600">{t.common.active}</span>}</td>
+                    <td className="px-4 py-3 font-mono text-stone-700">{hours}</td>
                     <td className="px-4 py-3">
                       <StatusBadge status={e.status} t={t} />
                     </td>

@@ -58,7 +58,7 @@ export function EmployeePositionEditor({ memberId, currentPosition }: { memberId
 
   return (
     <button onClick={() => setEditing(true)} className="text-sm text-stone-500 hover:text-stone-900 hover:underline text-left">
-      {currentPosition ?? <span className="text-stone-300">—</span>}
+      {currentPosition ?? <span className="text-stone-400">—</span>}
     </button>
   );
 }

@@ -115,7 +115,7 @@ export default async function PayrollPage({
       <Link href="/admin" className="text-sm text-stone-400 hover:text-stone-600 transition-colors">{t.common.backOverview}</Link>
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-stone-900">{t.adminPayroll.title}</h1>
+          <h1 className="font-display font-bold text-2xl uppercase tracking-wide text-black">{t.adminPayroll.title}</h1>
           <p className="text-sm text-stone-500">{t.adminPayroll.subtitle}</p>
         </div>
         <a

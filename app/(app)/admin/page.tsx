@@ -42,7 +42,7 @@ export default async function AdminPage() {
   return (
     <div className="p-6 space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-stone-900">{membership.company.name}</h1>
+        <h1 className="font-display font-bold text-2xl uppercase tracking-wide text-black">{membership.company.name}</h1>
         <p className="text-sm text-stone-500">{t.adminOverview.subtitle}</p>
       </div>
 
@@ -86,7 +86,7 @@ export default async function AdminPage() {
               s.urgent && s.value > 0 ? "border-amber-300" : "border-stone-200"
             }`}
           >
-            <p className={`text-3xl font-bold ${s.urgent && s.value > 0 ? "text-amber-600" : "text-stone-900"}`}>
+            <p className={`text-3xl font-mono font-bold ${s.urgent && s.value > 0 ? "text-amber-600" : "text-stone-900"}`}>
               {s.value}
             </p>
             <p className="text-sm text-stone-500 mt-1">{s.label}</p>
