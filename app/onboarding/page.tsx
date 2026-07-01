@@ -53,11 +53,19 @@ export default function OnboardingPage() {
     setLoading(true);
     setError("");
     const form = new FormData(e.currentTarget);
-    const res = await fetch("/api/invite/use", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ code: form.get("code") }),
-    });
+    let res: Response;
+    try {
+      res = await fetch("/api/invite/use", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: form.get("code") }),
+        signal: AbortSignal.timeout(15000),
+      });
+    } catch {
+      setError("Request timed out — please try again");
+      setLoading(false);
+      return;
+    }
     const data = await res.json();
     if (!res.ok) {
       setError(data.error ?? "Invalid or expired code");
