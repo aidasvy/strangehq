@@ -28,7 +28,7 @@ export async function POST(req: Request) {
       const updated = await tx.inviteCode.updateMany({
         where: {
           id: invite.id,
-          OR: [{ maxUses: null }, { usedCount: { lt: invite.maxUses! } }],
+          ...(invite.maxUses !== null ? { usedCount: { lt: invite.maxUses } } : {}),
         },
         data: { usedCount: { increment: 1 } },
       });
