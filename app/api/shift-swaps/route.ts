@@ -1,9 +1,17 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { Prisma } from "@/app/generated/prisma/client";
 import { sendSwapRequestedEmail, ShiftRow } from "@/lib/email";
 import { NextResponse } from "next/server";
 
 const APP_URL = process.env.NEXTAUTH_URL ?? process.env.APP_URL ?? "https://shiftsync.app";
+
+class SwapConflictError extends Error {}
+
+// Postgres serialization failure (SQLSTATE 40001) surfaces from Prisma as P2034
+function isSerializationFailure(err: unknown): boolean {
+  return err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2034";
+}
 
 export async function POST(req: Request) {
   const session = await auth();
@@ -53,29 +61,45 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Cannot swap a shift that's already in the past" }, { status: 400 });
   }
 
-  // Neither shift may already be tied up in another pending swap (either side)
-  const existing = await db.shiftSwapRequest.findFirst({
-    where: {
-      status: { in: ["PENDING_TARGET", "PENDING_ADMIN"] },
-      OR: [
-        { requesterShiftId: { in: [requesterShiftId, targetShiftId] } },
-        { targetShiftId: { in: [requesterShiftId, targetShiftId] } },
-      ],
-    },
-  });
-  if (existing) {
-    return NextResponse.json({ error: "One of these shifts is already part of a pending swap" }, { status: 409 });
-  }
+  // Neither shift may already be tied up in another pending swap (either side).
+  // The check-then-create is wrapped in a SERIALIZABLE transaction so two concurrent
+  // requests for the same shift can't both pass the check and both create a swap —
+  // Postgres aborts one with a serialization failure, which we surface as a 409.
+  let swap;
+  try {
+    swap = await db.$transaction(
+      async (tx) => {
+        const existing = await tx.shiftSwapRequest.findFirst({
+          where: {
+            status: { in: ["PENDING_TARGET", "PENDING_ADMIN"] },
+            OR: [
+              { requesterShiftId: { in: [requesterShiftId, targetShiftId] } },
+              { targetShiftId: { in: [requesterShiftId, targetShiftId] } },
+            ],
+          },
+        });
+        if (existing) {
+          throw new SwapConflictError();
+        }
 
-  const swap = await db.shiftSwapRequest.create({
-    data: {
-      companyId,
-      requesterId: session.user.id,
-      requesterShiftId,
-      targetUserId: targetShift.userId,
-      targetShiftId,
-    },
-  });
+        return tx.shiftSwapRequest.create({
+          data: {
+            companyId,
+            requesterId: session.user.id,
+            requesterShiftId,
+            targetUserId: targetShift.userId,
+            targetShiftId,
+          },
+        });
+      },
+      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }
+    );
+  } catch (err) {
+    if (err instanceof SwapConflictError || isSerializationFailure(err)) {
+      return NextResponse.json({ error: "One of these shifts is already part of a pending swap" }, { status: 409 });
+    }
+    throw err;
+  }
 
   // Email the target
   if (process.env.RESEND_API_KEY) {

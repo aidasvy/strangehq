@@ -14,17 +14,29 @@ export function EmployeeLeaveDaysEditor({
   const [editing, setEditing] = useState(false);
   const [days, setDays] = useState(String(currentDays));
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
 
   async function save() {
     setSaving(true);
-    await fetch(`/api/admin/employees/${memberId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ annualLeaveDays: parseInt(days, 10) }),
-    });
-    setSaving(false);
-    setEditing(false);
-    router.refresh();
+    setError("");
+    try {
+      const res = await fetch(`/api/admin/employees/${memberId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ annualLeaveDays: parseInt(days, 10) }),
+      });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        setError(d.error ?? "Failed to save");
+        return;
+      }
+      setEditing(false);
+      router.refresh();
+    } catch {
+      setError("Failed to save");
+    } finally {
+      setSaving(false);
+    }
   }
 
   if (editing) {
@@ -45,9 +57,10 @@ export function EmployeeLeaveDaysEditor({
         >
           {saving ? "…" : "Save"}
         </button>
-        <button onClick={() => setEditing(false)} className="text-xs text-stone-400 hover:text-stone-600">
+        <button onClick={() => { setEditing(false); setError(""); }} className="text-xs text-stone-400 hover:text-stone-600">
           Cancel
         </button>
+        {error && <span className="text-xs text-red-500">{error}</span>}
       </div>
     );
   }

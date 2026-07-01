@@ -143,15 +143,33 @@ Respond with ONLY valid JSON in this exact format, no explanation:
     const parsed = JSON.parse(jsonMatch[0]);
     if (!Array.isArray(parsed.shifts)) return NextResponse.json({ error: "Invalid AI response format" }, { status: 500 });
 
-    // Validate shift dates are in the week
+    // Validate shift dates, times, and per-employee hour caps before persisting —
+    // the AI's own instructions aren't a guarantee, so re-check everything server-side.
+    const TIME_RE = /^([01]\d|2[0-3]):([0-5]\d)$/;
+    const timeToMinutes = (t: string) => {
+      const [h, m] = t.split(":").map(Number);
+      return h * 60 + m;
+    };
+
     const validDates = new Set(weekDates);
     const validUserIds = new Set((employees as Array<{ id: string }>).map((e) => e.id));
-    const validShifts = parsed.shifts.filter(
-      (s: { userId: string; date: string; startTime: string; endTime: string }) =>
-        validDates.has(s.date) && validUserIds.has(s.userId) && s.startTime && s.endTime
-    );
+    const weeklyMinutes = new Map<string, number>();
 
-    return NextResponse.json({ shifts: validShifts.map((s: { userId: string; date: string; startTime: string; endTime: string }) => ({
+    const validShifts = (parsed.shifts as Array<{ userId: string; date: string; startTime: string; endTime: string }>).filter((s) => {
+      if (!validDates.has(s.date) || !validUserIds.has(s.userId)) return false;
+      if (!TIME_RE.test(s.startTime) || !TIME_RE.test(s.endTime)) return false;
+
+      const durationMin = timeToMinutes(s.endTime) - timeToMinutes(s.startTime);
+      if (durationMin <= 0 || durationMin > 8 * 60) return false;
+
+      const soFar = weeklyMinutes.get(s.userId) ?? 0;
+      if (soFar + durationMin > 40 * 60) return false;
+      weeklyMinutes.set(s.userId, soFar + durationMin);
+
+      return true;
+    });
+
+    return NextResponse.json({ shifts: validShifts.map((s) => ({
       userId: s.userId,
       date: new Date(s.date).toISOString(),
       startTime: s.startTime,

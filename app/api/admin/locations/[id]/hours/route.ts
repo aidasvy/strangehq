@@ -44,6 +44,22 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     hours: { dayOfWeek: number; isOpen: boolean; openTime: string; closeTime: string }[];
   };
 
+  if (!Array.isArray(hours)) {
+    return NextResponse.json({ error: "hours must be an array" }, { status: 400 });
+  }
+  const TIME_RE = /^([01]\d|2[0-3]):([0-5]\d)$/;
+  const isValid = (h: { dayOfWeek: number; isOpen: boolean; openTime: string; closeTime: string }) =>
+    Number.isInteger(h.dayOfWeek) && h.dayOfWeek >= 1 && h.dayOfWeek <= 7 &&
+    typeof h.isOpen === "boolean" &&
+    TIME_RE.test(h.openTime) && TIME_RE.test(h.closeTime) &&
+    (!h.isOpen || h.openTime < h.closeTime);
+  if (!hours.every(isValid)) {
+    return NextResponse.json(
+      { error: "Invalid hours: dayOfWeek must be 1-7, times must be HH:MM, and openTime must be before closeTime when open" },
+      { status: 400 }
+    );
+  }
+
   // Upsert each day
   await Promise.all(
     hours.map((h) =>

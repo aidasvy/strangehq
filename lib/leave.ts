@@ -102,12 +102,15 @@ export function computeLeaveBalance(
 ): LeaveBalance {
   const entitlement = computeEntitlement(annualLeaveDays, employmentStartDate, year);
 
-  // Carryover: unused paid leave from previous year (only if not their first year)
+  // Carryover: unused paid leave from previous year (only if not their first year).
+  // Also reserve any still-pending previous-year requests — if later approved they'd
+  // consume that year's entitlement, so they can't be carried over as "unused" yet.
   let carryoverDays = 0;
   if (employmentStartDate && employmentStartDate.getUTCFullYear() < year) {
     const prevEntitlement = computeEntitlement(annualLeaveDays, employmentStartDate, year - 1);
     const prevUsed = paidDaysInYear(approvedRequests, year - 1);
-    carryoverDays = Math.max(0, prevEntitlement - prevUsed);
+    const prevPending = paidDaysInYear(pendingRequests, year - 1);
+    carryoverDays = Math.max(0, prevEntitlement - prevUsed - prevPending);
   }
 
   const totalAvailable = entitlement + carryoverDays;

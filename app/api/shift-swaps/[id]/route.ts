@@ -46,13 +46,17 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   // ── Target responds ──────────────────────────────────────────────────────────
   if (action === "accept" || action === "reject") {
     if (!isTarget) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    if (swap.status !== "PENDING_TARGET") {
+
+    const targetNewStatus = action === "accept" ? "PENDING_ADMIN" : "REJECTED";
+    const { count } = await db.shiftSwapRequest.updateMany({
+      where: { id, status: "PENDING_TARGET" },
+      data: { status: targetNewStatus },
+    });
+    if (count === 0) {
       return NextResponse.json({ error: "Swap is not awaiting your response" }, { status: 409 });
     }
 
     if (action === "reject") {
-      await db.shiftSwapRequest.update({ where: { id }, data: { status: "REJECTED" } });
-
       if (process.env.RESEND_API_KEY) {
         sendSwapOutcomeEmail({
           to: swap.requester.email,
@@ -68,9 +72,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       return NextResponse.json({ status: "REJECTED" });
     }
 
-    // Accepted → move to PENDING_ADMIN, email admins
-    await db.shiftSwapRequest.update({ where: { id }, data: { status: "PENDING_ADMIN" } });
-
+    // Accepted → already moved to PENDING_ADMIN above; email admins
     if (process.env.RESEND_API_KEY) {
       const admins = await db.companyMember.findMany({
         where: { companyId: swap.companyId, role: { in: ["ADMIN", "MANAGER"] }, isActive: true },
@@ -98,25 +100,35 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   // ── Admin approves / denies ──────────────────────────────────────────────────
   if (action === "approve" || action === "deny") {
     if (!isAdmin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    if (swap.status !== "PENDING_ADMIN") {
-      return NextResponse.json({ error: "Swap is not awaiting admin approval" }, { status: 409 });
-    }
 
-    if (action === "deny") {
-      await db.shiftSwapRequest.update({ where: { id }, data: { status: "REJECTED" } });
-    } else {
-      // Swap the userId on both shifts, then mark approved
-      await db.$transaction([
-        db.scheduleShift.update({
+    const adminNewStatus = action === "approve" ? "APPROVED" : "REJECTED";
+
+    // Guard the status transition with the WHERE clause (not a pre-check) so that
+    // concurrent approve/deny calls on the same swap can't both proceed — Postgres
+    // row locking on the UPDATE ensures only one of them matches PENDING_ADMIN.
+    const claimed = await db.$transaction(async (tx) => {
+      const { count } = await tx.shiftSwapRequest.updateMany({
+        where: { id, status: "PENDING_ADMIN" },
+        data: { status: adminNewStatus },
+      });
+      if (count === 0) return false;
+
+      if (action === "approve") {
+        // Swap the userId on both shifts now that the status transition is claimed
+        await tx.scheduleShift.update({
           where: { id: swap.requesterShiftId },
           data: { userId: swap.targetUserId },
-        }),
-        db.scheduleShift.update({
+        });
+        await tx.scheduleShift.update({
           where: { id: swap.targetShiftId },
           data: { userId: swap.requesterId },
-        }),
-        db.shiftSwapRequest.update({ where: { id }, data: { status: "APPROVED" } }),
-      ]);
+        });
+      }
+      return true;
+    });
+
+    if (!claimed) {
+      return NextResponse.json({ error: "Swap is not awaiting admin approval" }, { status: 409 });
     }
 
     if (process.env.RESEND_API_KEY) {

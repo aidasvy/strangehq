@@ -27,20 +27,32 @@ export function EmployeeRoleEditor({ memberId, currentRole, isSelf }: Props) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
 
   // Admins can't be demoted via this UI; self can't change own role
   const canEdit = !isSelf && currentRole !== "ADMIN";
 
   async function setRole(role: Role) {
     setSaving(true);
-    await fetch(`/api/admin/employees/${memberId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ role }),
-    });
-    setSaving(false);
-    setOpen(false);
-    router.refresh();
+    setError("");
+    try {
+      const res = await fetch(`/api/admin/employees/${memberId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ role }),
+      });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        setError(d.error ?? "Failed to save");
+        return;
+      }
+      setOpen(false);
+      router.refresh();
+    } catch {
+      setError("Failed to save");
+    } finally {
+      setSaving(false);
+    }
   }
 
   const badge = (
@@ -75,11 +87,12 @@ export function EmployeeRoleEditor({ memberId, currentRole, isSelf }: Props) {
           </button>
         )}
         <button
-          onClick={() => setOpen(false)}
+          onClick={() => { setOpen(false); setError(""); }}
           className="text-xs text-stone-400 hover:text-stone-600"
         >
           Cancel
         </button>
+        {error && <span className="text-xs text-red-500">{error}</span>}
       </div>
     );
   }

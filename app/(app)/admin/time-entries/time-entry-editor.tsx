@@ -49,8 +49,18 @@ export function TimeEntryEditor({ entryId, clockIn, clockOut }: Props) {
 
   async function deleteEntry() {
     if (!confirm("Delete this time entry? This cannot be undone.")) return;
-    await fetch(`/api/time-entries/${entryId}`, { method: "DELETE" });
-    router.refresh();
+    setError("");
+    try {
+      const res = await fetch(`/api/time-entries/${entryId}`, { method: "DELETE" });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        setError(d.error ?? "Failed to delete");
+        return;
+      }
+      router.refresh();
+    } catch {
+      setError("Failed to delete");
+    }
   }
 
   if (!open) {

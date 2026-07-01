@@ -39,6 +39,17 @@ export async function PUT(req: Request, { params }: { params: Promise<{ location
   // rules: Array<{ dayOfWeek: number; hour: number; minStaff: number }>
   const { rules } = await req.json();
 
+  if (!Array.isArray(rules)) {
+    return NextResponse.json({ error: "rules must be an array" }, { status: 400 });
+  }
+  const isValid = (r: { dayOfWeek: number; hour: number; minStaff: number }) =>
+    Number.isInteger(r.dayOfWeek) && r.dayOfWeek >= 1 && r.dayOfWeek <= 7 &&
+    Number.isInteger(r.hour) && r.hour >= 0 && r.hour <= 23 &&
+    Number.isInteger(r.minStaff) && r.minStaff >= 0;
+  if (!(rules as { dayOfWeek: number; hour: number; minStaff: number }[]).every(isValid)) {
+    return NextResponse.json({ error: "Invalid rule: dayOfWeek must be 1-7, hour 0-23, minStaff >= 0" }, { status: 400 });
+  }
+
   await db.staffingRule.deleteMany({ where: { locationId } });
 
   const toCreate = (rules as { dayOfWeek: number; hour: number; minStaff: number }[]).filter(
