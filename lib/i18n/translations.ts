@@ -218,9 +218,6 @@ const en = {
   availability: {
     title: "Availability",
     subtitle: "Let your manager know when you can work",
-    nextWeek: "Next week",
-    weekAfter: "Week after",
-    weekAfterNext: "Week after next",
     notAvailable: "Not available",
     to: "to",
     saveAvailability: "Save availability",
@@ -495,9 +492,6 @@ const lt: typeof en = {
   availability: {
     title: "Prieinamumas",
     subtitle: "Pranešk vadovui, kada gali dirbti",
-    nextWeek: "Kita savaitė",
-    weekAfter: "Savaitė po kitos",
-    weekAfterNext: "+2 savaitės",
     notAvailable: "Galimybės nėra",
     to: "iki",
     saveAvailability: "Išsaugoti prieinamumą",

@@ -33,7 +33,7 @@ export default async function AvailabilityPage({
   const t = getTranslations(locale);
 
   const sp = await searchParams;
-  const weekOffset = sp.week === "2" ? 2 : 1;
+  const weekOffset = Math.min(4, Math.max(1, parseInt(sp.week ?? "1") || 1));
   const weekStart = getWeekStart(weekOffset);
 
   const existing = await db.availability.findUnique({
@@ -46,8 +46,13 @@ export default async function AvailabilityPage({
     },
   });
 
-  const weekLabel = weekOffset === 1 ? t.availability.nextWeek : t.availability.weekAfterNext;
-  const weekDate = weekStart.toLocaleDateString(t.dateLocale, { day: "numeric", month: "short" });
+  function weekDateRange(offset: number) {
+    const start = getWeekStart(offset);
+    const end = new Date(start);
+    end.setDate(end.getDate() + 6);
+    const fmt = (d: Date) => d.toLocaleDateString(t.dateLocale, { day: "numeric", month: "short" });
+    return `${fmt(start)} – ${fmt(end)}`;
+  }
 
   return (
     <div className="p-6 space-y-6">
@@ -58,27 +63,20 @@ export default async function AvailabilityPage({
       </div>
 
       {/* Week selector */}
-      <div className="flex gap-2">
-        {[
-          { label: t.availability.nextWeek, week: "1", offset: 1 },
-          { label: t.availability.weekAfter, week: "2", offset: 2 },
-        ].map(({ label, week, offset }) => {
+      <div className="flex flex-wrap gap-2">
+        {[1, 2, 3, 4].map((offset) => {
           const active = weekOffset === offset;
-          const date = getWeekStart(offset);
           return (
             <Link
-              key={week}
-              href={`/dashboard/availability?week=${week}`}
+              key={offset}
+              href={`/dashboard/availability?week=${offset}`}
               className={`rounded-lg px-4 py-2 text-sm font-medium border transition-colors ${
                 active
                   ? "bg-stone-100 border-stone-400 text-stone-900"
                   : "border-stone-200 text-stone-600 hover:bg-stone-50"
               }`}
             >
-              {label}
-              <span className="ml-1.5 text-xs font-normal opacity-60">
-                {date.toLocaleDateString(t.dateLocale, { day: "numeric", month: "short" })}
-              </span>
+              {weekDateRange(offset)}
             </Link>
           );
         })}
@@ -87,7 +85,7 @@ export default async function AvailabilityPage({
       <AvailabilityForm
         companyId={membership.companyId}
         weekStart={weekStart.toISOString()}
-        weekLabel={`${weekLabel} (w/c ${weekDate})`}
+        weekLabel={weekDateRange(weekOffset)}
         existing={existing?.data as AvailabilitySlot[] | null}
       />
     </div>
