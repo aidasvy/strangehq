@@ -19,11 +19,19 @@ export default function OnboardingPage() {
 
   async function enterProfileStep(dest: string) {
     setDestination(dest);
-    const res = await fetch("/api/profile");
-    if (res.ok) {
-      const data = await res.json();
-      setProfileName(data.name ?? "");
-      setProfilePhone(data.phone ?? "");
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 10000);
+    try {
+      const res = await fetch("/api/profile", { signal: controller.signal });
+      if (res.ok) {
+        const data = await res.json();
+        setProfileName(data.name ?? "");
+        setProfilePhone(data.phone ?? "");
+      }
+    } catch {
+      // profile prefill failed — proceed anyway, user can fill it in
+    } finally {
+      clearTimeout(timer);
     }
     setMode("profile");
   }
@@ -54,17 +62,21 @@ export default function OnboardingPage() {
     setError("");
     const form = new FormData(e.currentTarget);
     let res: Response;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 15000);
     try {
       res = await fetch("/api/invite/use", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ code: form.get("code") }),
-        signal: AbortSignal.timeout(15000),
+        signal: controller.signal,
       });
     } catch {
       setError("Request timed out — please try again");
       setLoading(false);
       return;
+    } finally {
+      clearTimeout(timer);
     }
     const data = await res.json();
     if (!res.ok) {
