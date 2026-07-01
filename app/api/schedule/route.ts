@@ -29,19 +29,43 @@ export async function POST(req: Request) {
     create: { companyId, locationId, weekStart: weekStartDate, status: "DRAFT" },
   });
 
-  // Validate all shift userIds belong to this company
+  // Validate all shift userIds belong to this company (include inactive members so
+  // resaving a week that has a since-deactivated employee's existing shift doesn't fail)
   if (shifts?.length > 0) {
     const validUserIds = new Set(
-      (await db.companyMember.findMany({ where: { companyId, isActive: true }, select: { userId: true } }))
+      (await db.companyMember.findMany({ where: { companyId }, select: { userId: true } }))
         .map((m) => m.userId)
     );
     const invalid = shifts.find((s: { userId: string }) => !validUserIds.has(s.userId));
     if (invalid) return NextResponse.json({ error: "One or more users do not belong to this company" }, { status: 403 });
   }
 
-  await db.scheduleShift.deleteMany({ where: { scheduleId: schedule.id } });
-
   const warnings: string[] = [];
+
+  // Resaving replaces all shift rows (new ids), which would silently cascade-delete
+  // any pending swap requests tied to the old shift rows. Reject those explicitly first
+  // so the admin sees what happened instead of swaps vanishing with no trace.
+  const affectedSwaps = await db.shiftSwapRequest.findMany({
+    where: {
+      status: { in: ["PENDING_TARGET", "PENDING_ADMIN"] },
+      OR: [
+        { requesterShift: { scheduleId: schedule.id } },
+        { targetShift: { scheduleId: schedule.id } },
+      ],
+    },
+    include: { requester: { select: { name: true } }, targetUser: { select: { name: true } } },
+  });
+  if (affectedSwaps.length > 0) {
+    await db.shiftSwapRequest.updateMany({
+      where: { id: { in: affectedSwaps.map((s) => s.id) } },
+      data: { status: "REJECTED" },
+    });
+    for (const s of affectedSwaps) {
+      warnings.push(`Cancelled pending swap between ${s.requester.name ?? "employee"} and ${s.targetUser.name ?? "employee"} because the schedule changed`);
+    }
+  }
+
+  await db.scheduleShift.deleteMany({ where: { scheduleId: schedule.id } });
 
   if (shifts?.length > 0) {
     const invalidTime = shifts.find((s: { startTime: string; endTime: string }) => s.startTime >= s.endTime);

@@ -153,13 +153,25 @@ export function ScheduleBuilder({
   }
 
   async function save() {
+    if (scheduleStatus === "PUBLISHED") {
+      const ok = confirm(
+        "This schedule is already published and employees can see it. Saving changes now will not automatically notify them — publish again if you want them re-emailed. Continue?"
+      );
+      if (!ok) return;
+    }
     setSaving(true);
-    await fetch("/api/schedule", {
+    const res = await fetch("/api/schedule", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ companyId, locationId, weekStart, shifts }),
     });
     setSaving(false);
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data.warnings) && data.warnings.length > 0) {
+        alert(data.warnings.join("\n"));
+      }
+    }
     router.refresh();
   }
 
@@ -358,14 +370,14 @@ export function ScheduleBuilder({
         >
           {saving ? "Saving…" : "Save draft"}
         </button>
-        {scheduleId && scheduleStatus !== "PUBLISHED" && (
+        {scheduleId && (
           <button
             onClick={publish}
             disabled={publishing || errors.length > 0}
             title={errors.length > 0 ? "Fix errors before publishing" : undefined}
             className="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50 transition-colors"
           >
-            {publishing ? "Publishing…" : "Publish schedule"}
+            {publishing ? "Publishing…" : scheduleStatus === "PUBLISHED" ? "Re-publish & notify" : "Publish schedule"}
           </button>
         )}
         {scheduleStatus === "PUBLISHED" && (

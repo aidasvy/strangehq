@@ -19,6 +19,22 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
+  if (hourlyRate !== undefined && hourlyRate !== null) {
+    if (typeof hourlyRate !== "number" || !Number.isFinite(hourlyRate) || hourlyRate < 0) {
+      return NextResponse.json({ error: "Hourly rate must be a non-negative number" }, { status: 400 });
+    }
+  }
+
+  // Prevent removing the last active admin via role change
+  if (role !== undefined && target.role === "ADMIN" && role !== "ADMIN") {
+    const adminCount = await db.companyMember.count({
+      where: { companyId: target.companyId, role: "ADMIN", isActive: true },
+    });
+    if (adminCount <= 1) {
+      return NextResponse.json({ error: "Cannot demote the last admin — promote someone else first" }, { status: 400 });
+    }
+  }
+
   const updates: Record<string, unknown> = {};
   if (hourlyRate !== undefined) updates.hourlyRate = hourlyRate;
   if (position !== undefined) updates.position = position;
@@ -49,6 +65,15 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
   }
   if (target.userId === session.user.id) {
     return NextResponse.json({ error: "Cannot remove yourself" }, { status: 400 });
+  }
+
+  if (target.role === "ADMIN") {
+    const adminCount = await db.companyMember.count({
+      where: { companyId: target.companyId, role: "ADMIN", isActive: true },
+    });
+    if (adminCount <= 1) {
+      return NextResponse.json({ error: "Cannot remove the last admin — promote someone else first" }, { status: 400 });
+    }
   }
 
   await db.companyMember.update({ where: { id }, data: { isActive: false } });

@@ -11,8 +11,15 @@ export async function POST(req: Request) {
   if (!startDate || !endDate) {
     return NextResponse.json({ error: "Start and end dates are required" }, { status: 400 });
   }
-  if (new Date(startDate) > new Date(endDate)) {
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  if (start > end) {
     return NextResponse.json({ error: "Start date must be before end date" }, { status: 400 });
+  }
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  if (start < today) {
+    return NextResponse.json({ error: "Cannot request leave for a date in the past" }, { status: 400 });
   }
 
   const membership = await db.companyMember.findUnique({
@@ -21,6 +28,20 @@ export async function POST(req: Request) {
   if (!membership) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   if (!membership.employmentStartDate) {
     return NextResponse.json({ error: "Your employment start date has not been set. Contact your admin." }, { status: 403 });
+  }
+
+  // Block overlap with any request that isn't already rejected
+  const overlapping = await db.holidayRequest.findFirst({
+    where: {
+      userId: session.user.id,
+      companyId,
+      status: { in: ["PENDING", "APPROVED"] },
+      startDate: { lte: end },
+      endDate: { gte: start },
+    },
+  });
+  if (overlapping) {
+    return NextResponse.json({ error: "You already have a request covering these dates" }, { status: 409 });
   }
 
   const request = await db.holidayRequest.create({

@@ -105,6 +105,7 @@ export function HolidayRequestForm({ companyId, balance }: Props) {
             <input
               type="date"
               value={startDate}
+              min={new Date().toISOString().slice(0, 10)}
               onChange={(e) => setStartDate(e.target.value)}
               required
               className="w-full rounded border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-stone-400"
@@ -115,6 +116,7 @@ export function HolidayRequestForm({ companyId, balance }: Props) {
             <input
               type="date"
               value={endDate}
+              min={startDate || new Date().toISOString().slice(0, 10)}
               onChange={(e) => setEndDate(e.target.value)}
               required
               className="w-full rounded border border-stone-300 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-stone-400"

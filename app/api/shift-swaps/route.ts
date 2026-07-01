@@ -46,16 +46,25 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Cannot swap with yourself" }, { status: 400 });
   }
 
-  // No duplicate pending request for same pair
+  // Can't swap a shift that's already in the past
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  if (requesterShift.date < today || targetShift.date < today) {
+    return NextResponse.json({ error: "Cannot swap a shift that's already in the past" }, { status: 400 });
+  }
+
+  // Neither shift may already be tied up in another pending swap (either side)
   const existing = await db.shiftSwapRequest.findFirst({
     where: {
-      requesterShiftId,
-      targetShiftId,
       status: { in: ["PENDING_TARGET", "PENDING_ADMIN"] },
+      OR: [
+        { requesterShiftId: { in: [requesterShiftId, targetShiftId] } },
+        { targetShiftId: { in: [requesterShiftId, targetShiftId] } },
+      ],
     },
   });
   if (existing) {
-    return NextResponse.json({ error: "Swap request already pending" }, { status: 409 });
+    return NextResponse.json({ error: "One of these shifts is already part of a pending swap" }, { status: 409 });
   }
 
   const swap = await db.shiftSwapRequest.create({

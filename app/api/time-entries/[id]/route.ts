@@ -80,6 +80,17 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     return NextResponse.json({ error: "Clock-out must be after clock-in" }, { status: 400 });
   }
 
+  // If an admin edits the times on an already-approved entry, it must be re-approved —
+  // otherwise hours (and payroll) silently change after the fact with no review.
+  if (
+    isAdmin &&
+    entry.status === "APPROVED" &&
+    !("status" in updates) &&
+    ("clockIn" in updates || "clockOut" in updates)
+  ) {
+    updates.status = "PENDING";
+  }
+
   const updated = await db.timeEntry.update({ where: { id }, data: updates });
   return NextResponse.json(updated);
 }

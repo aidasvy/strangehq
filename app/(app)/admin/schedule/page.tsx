@@ -89,7 +89,7 @@ export default async function AdminSchedulePage({
       },
     }),
     db.companyMember.findMany({
-      where: { companyId },
+      where: { companyId, isActive: true },
       include: { user: { select: { id: true, name: true, email: true, phone: true } } },
     }),
     db.availability.findMany({
