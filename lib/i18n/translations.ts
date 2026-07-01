@@ -278,7 +278,7 @@ const lt: typeof en = {
     schedule: "Grafikas",
     availability: "Prieinamumas",
     holidays: "Atostogos",
-    leaveTab: "Palikti",
+    leaveTab: "Atostogos",
     signOut: "Atsijungti",
   },
 
