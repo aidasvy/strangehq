@@ -276,7 +276,7 @@ const lt: typeof en = {
     home: "Pradžia",
     hours: "Valandos",
     schedule: "Grafikas",
-    availability: "Prieinamumas",
+    availability: "Planavimas",
     holidays: "Atostogos",
     leaveTab: "Atostogos",
     signOut: "Atsijungti",
@@ -492,11 +492,11 @@ const lt: typeof en = {
   },
 
   availability: {
-    title: "Prieinamumas",
+    title: "Planavimas",
     subtitle: "Pranešk vadovui, kada gali dirbti",
     notAvailable: "Galimybės nėra",
     to: "iki",
-    saveAvailability: "Išsaugoti prieinamumą",
+    saveAvailability: "Išsaugoti planavimą",
     saving: "Išsaugoma…",
     saved: "Išsaugota!",
   },
