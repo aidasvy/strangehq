@@ -497,7 +497,7 @@ const lt: typeof en = {
     subtitle: "Pranešk vadovui, kada gali dirbti",
     nextWeek: "Kita savaitė",
     weekAfter: "Savaitė po kitos",
-    weekAfterNext: "Savaitė po kitos",
+    weekAfterNext: "+2 savaitės",
     notAvailable: "Neprieinamas",
     to: "iki",
     saveAvailability: "Išsaugoti prieinamumą",
